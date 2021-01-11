@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">WordList</string>
+    <string name="type_here">Type Here</string>
+    <string name="delete_entry">Delete Entry</string>
+    <string name="add_entry">Add Entry</string>
+    <string name="save_list">Save List</string>
+    <string name="clear_field">Clear Field</string>
+    <string name="clear_list">Clear List</string>
+    <string name="todo">TODO</string>
+    <string name="cancel">Cancel</string>
+    <string name="wordlist">WordList</string>
+    <string name="type_entry_here">Type entry here</string>
+    <string name="txtLabel">Add entry</string>
+</resources>
