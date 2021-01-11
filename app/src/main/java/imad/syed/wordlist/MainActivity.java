@@ -33,16 +33,16 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     // Variable Declarations
-    private RecyclerView recyclerView;
-    private RecyclerView.Adapter adapter;
-    private RecyclerView.LayoutManager layoutManager;
+    RecyclerView recyclerView;
+    RecyclerView.Adapter adapter;
+    RecyclerView.LayoutManager layoutManager;
     List<String> WordList;
     List<String> deletedList;
     List<String> clearedList;
     Toast toast;
     ItemTouchHelper.SimpleCallback simpleCallback;
     ItemTouchHelper itemTouchHelper;
-    FloatingActionButton fabAdd, fabUndo, fabSave;
+    FloatingActionButton fabAdd, fabUndo;
     Toolbar toolbar;
     boolean listChanged;
 
@@ -54,14 +54,12 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.wordListView);
         fabAdd = findViewById(R.id.addButton);
         fabUndo = findViewById(R.id.btnUndo);
-        fabSave = findViewById(R.id.btnSave);
         toolbar = findViewById(R.id.toolbar);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         deletedList = new ArrayList<>();
         clearedList = new ArrayList<>();
 
-        fabSave.hide();
         fabUndo.hide();
         listChanged = false;
 
@@ -98,12 +96,11 @@ public class MainActivity extends AppCompatActivity {
                     int i = viewHolder.getAdapterPosition();
                     deletedList.add(WordList.get(i));
                     WordList.remove(i);
-                    toast = Toast.makeText(getApplicationContext(), "Entry deleted. Tap Save List to save your changes.", Toast.LENGTH_SHORT);
+                    toast = Toast.makeText(getApplicationContext(), "Entry deleted. List Saved.", Toast.LENGTH_SHORT);
                     toast.show();
                     adapter.notifyDataSetChanged();
+                    Save();
                     listChanged = true;
-                    fabSave.show();
-
                     if (!fabUndo.isShown()) {
                         fabUndo.show();
                     }
@@ -121,12 +118,8 @@ public class MainActivity extends AppCompatActivity {
                 if (newState == RecyclerView.SCROLL_STATE_DRAGGING && fabAdd.isShown()) {
                     fabAdd.hide();
                     fabUndo.hide();
-                    fabSave.hide();
                 } else {
                     fabAdd.show();
-                    if (listChanged) {
-                        fabSave.show();
-                    }
                     if (!deletedList.isEmpty()) {
                         fabUndo.show();
                     }
@@ -136,12 +129,6 @@ public class MainActivity extends AppCompatActivity {
 
         RetrieveList();
     }
-    // Method for saving the list via the Save List button
-    public void SaveList (View view){
-        Save();
-        fabSave.hide();
-        listChanged = false;
-    }
     // Method for saving the list
     public void Save () {
         SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
@@ -150,8 +137,6 @@ public class MainActivity extends AppCompatActivity {
         String json = gson.toJson(WordList);
         editor.putString("word list", json);
         editor.apply();
-        toast = Toast.makeText(getApplicationContext(), "List Saved.", Toast.LENGTH_SHORT);
-        toast.show();
     }
     // Method for retrieving the saved list
     public void RetrieveList (){
@@ -170,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
     public void AddWord (String input) {
         WordList.add(input);
         Collections.sort(WordList);
-        toast = Toast.makeText(getApplicationContext(), "Entry added.", Toast.LENGTH_SHORT);
+        toast = Toast.makeText(getApplicationContext(), "Entry added. List Saved.", Toast.LENGTH_SHORT);
         Save();
         adapter.notifyDataSetChanged();
         toast.show();
@@ -182,8 +167,10 @@ public class MainActivity extends AppCompatActivity {
         deletedList.remove(delWord);
         Collections.sort(WordList);
         adapter.notifyDataSetChanged();
-        fabSave.show();
         listChanged = true;
+        Save();
+        toast = Toast.makeText(getApplicationContext(), "Entry re-added. List Saved.", Toast.LENGTH_SHORT);
+        toast.show();
         if (deletedList.size() == 0) {
             fabUndo.hide();
         }
@@ -191,9 +178,7 @@ public class MainActivity extends AppCompatActivity {
     //Method for opening Dialog
     public void openAddWordDialog (View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setInverseBackgroundForced(true);
         builder.setTitle("Add Entry");
-        builder.setView(R.layout.dialog_layout);
 
         final EditText editText = new EditText(this);
         editText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
