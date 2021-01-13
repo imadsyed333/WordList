@@ -3,7 +3,6 @@ package imad.syed.wordlist;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -43,8 +42,7 @@ public class MainActivity extends AppCompatActivity {
     ItemTouchHelper.SimpleCallback simpleCallback;
     ItemTouchHelper itemTouchHelper;
     FloatingActionButton fabAdd, fabUndo;
-    Toolbar toolbar;
-    boolean listChanged;
+    RecyclerView.OnScrollListener onScrollListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,25 +52,24 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.wordListView);
         fabAdd = findViewById(R.id.addButton);
         fabUndo = findViewById(R.id.btnUndo);
-        toolbar = findViewById(R.id.toolbar);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         deletedList = new ArrayList<>();
         clearedList = new ArrayList<>();
 
         fabUndo.hide();
-        listChanged = false;
 
         //Code for the RecyclerView adapter
         adapter = new RecyclerView.Adapter<CustomViewHolder>() {
+            @NonNull
             @Override
-            public CustomViewHolder onCreateViewHolder(ViewGroup parent, int i) {
+            public CustomViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
                 View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.row, parent, false);
                 return new CustomViewHolder(view);
             }
 
             @Override
-            public void onBindViewHolder(CustomViewHolder viewHolder, int i) {
+            public void onBindViewHolder(@NonNull CustomViewHolder viewHolder, int i) {
                 viewHolder.word_item.setText(WordList.get(i));
             }
 
@@ -100,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
                     toast.show();
                     adapter.notifyDataSetChanged();
                     Save();
-                    listChanged = true;
                     if (!fabUndo.isShown()) {
                         fabUndo.show();
                     }
@@ -111,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
         //Code for hiding fab when scrolling
-        recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
+        onScrollListener = new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
@@ -125,8 +121,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-        });
-
+        };
+        recyclerView.addOnScrollListener(onScrollListener);
         RetrieveList();
     }
     // Method for saving the list
@@ -167,7 +163,6 @@ public class MainActivity extends AppCompatActivity {
         deletedList.remove(delWord);
         Collections.sort(WordList);
         adapter.notifyDataSetChanged();
-        listChanged = true;
         Save();
         toast = Toast.makeText(getApplicationContext(), "Entry re-added. List Saved.", Toast.LENGTH_SHORT);
         toast.show();
