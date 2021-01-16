@@ -8,7 +8,8 @@
     <string name="clear_list">Clear List</string>
     <string name="todo">TODO</string>
     <string name="cancel">Cancel</string>
-    <string name="wordlist">WordList</string>
     <string name="type_entry_here">Type entry here</string>
     <string name="txtLabel">Add entry</string>
+    <string name="app_label">app_label</string>
+    <string name="search_hint">Search word entries</string>
 </resources>

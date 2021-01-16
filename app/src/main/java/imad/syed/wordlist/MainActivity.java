@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -38,11 +40,15 @@ public class MainActivity extends AppCompatActivity {
     List<String> WordList;
     List<String> deletedList;
     List<String> clearedList;
+    List<String> displayList;
     Toast toast;
     ItemTouchHelper.SimpleCallback simpleCallback;
     ItemTouchHelper itemTouchHelper;
     FloatingActionButton fabAdd, fabUndo;
     RecyclerView.OnScrollListener onScrollListener;
+    SearchView searchView;
+    SearchView.OnQueryTextListener onQueryTextListener;
+    SearchView.OnCloseListener onCloseListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,11 +58,11 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.wordListView);
         fabAdd = findViewById(R.id.addButton);
         fabUndo = findViewById(R.id.btnUndo);
+        searchView = findViewById(R.id.search_view);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         deletedList = new ArrayList<>();
         clearedList = new ArrayList<>();
-
         fabUndo.hide();
 
         //Code for the RecyclerView adapter
@@ -70,12 +76,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onBindViewHolder(@NonNull CustomViewHolder viewHolder, int i) {
-                viewHolder.word_item.setText(WordList.get(i));
+                viewHolder.word_item.setText(displayList.get(i));
             }
 
             @Override
             public int getItemCount() {
-                return WordList.size();
+                return displayList.size();
             }
         };
         recyclerView.setAdapter(adapter);
@@ -95,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
                     WordList.remove(i);
                     toast = Toast.makeText(getApplicationContext(), "Entry deleted. List Saved.", Toast.LENGTH_SHORT);
                     toast.show();
+                    displayList = WordList;
                     adapter.notifyDataSetChanged();
                     Save();
                     if (!fabUndo.isShown()) {
@@ -123,6 +130,41 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         recyclerView.addOnScrollListener(onScrollListener);
+
+        //Code for searchView text-change listening
+        onQueryTextListener = new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                for (int i = 0; i < WordList.size(); i++) {
+                    String currentWord = WordList.get(i);
+                    if (!currentWord.startsWith(s) && displayList.contains(currentWord)) {
+                        displayList.remove(currentWord);
+                    } else if (currentWord.startsWith(s) && !displayList.contains(currentWord)) {
+                        displayList.add(currentWord);
+                    } else if(s.isEmpty()) {
+                        displayList = WordList;
+                    }
+                    Collections.sort(displayList);
+                    adapter.notifyDataSetChanged();
+                }
+                return false;
+            }
+        };
+        searchView.setOnQueryTextListener(onQueryTextListener);
+
+        //Code for searchView on-close listening
+        onCloseListener = new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                RetrieveList();
+                return false;
+            }
+        };
         RetrieveList();
     }
     // Method for saving the list
@@ -145,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
         if (WordList == null) {
             WordList = new ArrayList<>();
         }
+        displayList = WordList;
         adapter.notifyDataSetChanged();
     }
     // Method for adding a word
@@ -153,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
         Collections.sort(WordList);
         toast = Toast.makeText(getApplicationContext(), "Entry added. List Saved.", Toast.LENGTH_SHORT);
         Save();
+        displayList = WordList;
         adapter.notifyDataSetChanged();
         toast.show();
     }
@@ -162,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
         WordList.add(delWord);
         deletedList.remove(delWord);
         Collections.sort(WordList);
+        displayList = WordList;
         adapter.notifyDataSetChanged();
         Save();
         toast = Toast.makeText(getApplicationContext(), "Entry re-added. List Saved.", Toast.LENGTH_SHORT);
