@@ -25,12 +25,6 @@
                 android:layout_height="?attr/actionBarSize"
                 android:layout_width="match_parent">
             </androidx.appcompat.widget.Toolbar>
-
-            <SearchView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:queryHint="@string/search_hint"
-                android:id="@+id/search_view"/>
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
