@@ -11,17 +11,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordListViewHolder> {
-    private List<String> mWordList;
+    private final List<Word> mWordList;
 
-    WordListAdapter(List<String> wordList) {
+    WordListAdapter(List<Word> wordList) {
         this.mWordList = wordList;
     }
 
     public static class WordListViewHolder extends RecyclerView.ViewHolder {
-        public TextView wordItem;
+        public TextView nameItem;
+        public TextView meaningItem;
         public WordListViewHolder(@NonNull View itemView) {
             super(itemView);
-            wordItem = itemView.findViewById(R.id.word_row_item);
+            nameItem = itemView.findViewById(R.id.nameView);
+            meaningItem = itemView.findViewById(R.id.meaningView);
         }
     }
 
@@ -34,7 +36,8 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordLi
 
     @Override
     public void onBindViewHolder(@NonNull WordListViewHolder holder, int position) {
-        holder.wordItem.setText(mWordList.get(position));
+        holder.nameItem.setText(mWordList.get(position).getName());
+        holder.meaningItem.setText(mWordList.get(position).getMeaning());
     }
 
     @Override

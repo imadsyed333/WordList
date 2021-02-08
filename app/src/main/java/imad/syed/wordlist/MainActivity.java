@@ -10,13 +10,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 
 import android.widget.EditText;
 
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -26,6 +29,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -33,9 +37,9 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     WordListAdapter adapter;
     RecyclerView.LayoutManager layoutManager;
-    List<String> WordList;
-    List<String> deletedList;
-    List<String> clearedList;
+    List<Word> WordList;
+    List<Word> deletedList;
+    List<Word> clearedList;
     Toast toast;
     ItemTouchHelper.SimpleCallback simpleCallback;
     ItemTouchHelper itemTouchHelper;
@@ -54,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         deletedList = new ArrayList<>();
         clearedList = new ArrayList<>();
+        WordList = new ArrayList<>();
         fabUndo.hide();
 
         RetrieveList();
@@ -77,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
                     WordList.remove(i);
                     toast = Toast.makeText(getApplicationContext(), "Entry deleted. List Saved.", Toast.LENGTH_SHORT);
                     toast.show();
+                    WordListSort();
                     adapter.notifyDataSetChanged();
                     Save();
                     if (!fabUndo.isShown()) {
@@ -112,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = storage.edit();
         Gson gson = new Gson();
         String json = gson.toJson(WordList);
-        editor.putString("word list", json);
+        editor.putString("WordList", json);
         editor.apply();
     }
     // Method for retrieving the saved list
@@ -120,30 +126,30 @@ public class MainActivity extends AppCompatActivity {
         try {
             SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
             Gson gson = new Gson();
-            String json = storage.getString("word list", null);
-            Type type = new TypeToken<ArrayList<String>>() {}.getType();
+            String json = storage.getString("WordList", String.valueOf(new ArrayList<Word>()));
+            Type type = new TypeToken<ArrayList<Word>>() {}.getType();
             WordList = gson.fromJson(json, type);
+            WordListSort();
             adapter.notifyDataSetChanged();
         } catch (NullPointerException ne) {
-            System.out.println("List was empty");
-            System.out.println(WordList.isEmpty());
+            Log.d("wordListError", "The WordList appears to be empty");
         }
     }
     // Method for adding a word
-    public void AddWord (String input) {
-        WordList.add(input);
-        Collections.sort(WordList);
+    public void AddWord (String name, String meaning) {
+        WordList.add(new Word(name, meaning));
         toast = Toast.makeText(getApplicationContext(), "Entry added. List Saved.", Toast.LENGTH_SHORT);
         Save();
         adapter.notifyDataSetChanged();
+        WordListSort();
         toast.show();
     }
     //Method for undoing DeleteWord
     public void UndoAction (View view) {
-        String delWord = deletedList.get(deletedList.size() - 1);
+        Word delWord = deletedList.get(deletedList.size() - 1);
         WordList.add(delWord);
         deletedList.remove(delWord);
-        Collections.sort(WordList);
+        WordListSort();
         adapter.notifyDataSetChanged();
         Save();
         toast = Toast.makeText(getApplicationContext(), "Entry re-added. List Saved.", Toast.LENGTH_SHORT);
@@ -154,22 +160,37 @@ public class MainActivity extends AppCompatActivity {
     }
     //Method for opening Dialog
     public void openAddWordDialog (View view) {
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add Entry");
 
-        final EditText editText = new EditText(this);
-        editText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-        builder.setView(editText);
+        final EditText wordName = new EditText(this);
+        wordName.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        wordName.setHint("Type the name of the entry here");
+        wordName.setHintTextColor(Color.GRAY);
+
+        final EditText wordMeaning = new EditText(this);
+        wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        wordMeaning.setHint("Type any notes about the entry here");
+        wordMeaning.setHintTextColor(Color.GRAY);
+
+        layout.addView(wordName);
+        layout.addView(wordMeaning);
+
+        builder.setView(layout);
 
         builder.setPositiveButton("Add Entry", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                String input = editText.getText().toString();
-                if (input.isEmpty()) {
+                String name = wordName.getText().toString();
+                String meaning = wordMeaning.getText().toString();
+                if (name.isEmpty() || meaning.isEmpty()) {
                     toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
                     toast.show();
                 } else {
-                    AddWord(input);
+                    AddWord(name, meaning);
                 }
             }
         });
@@ -180,5 +201,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         builder.show();
+    }
+
+    public void WordListSort() {
+        Collections.sort(WordList, new Comparator<Word>() {
+            @Override
+            public int compare(Word word1, Word word2) {
+                return word1.getName().compareToIgnoreCase(word2.getName());
+            }
+        });
     }
 }
