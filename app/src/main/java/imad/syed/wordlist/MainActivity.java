@@ -17,9 +17,11 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -118,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = storage.edit();
         Gson gson = new Gson();
         String json = gson.toJson(WordList);
-        editor.putString("WordList", json);
+        editor.putString("word list", json);
         editor.apply();
     }
     // Method for retrieving the saved list
@@ -126,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
             Gson gson = new Gson();
-            String json = storage.getString("WordList", String.valueOf(new ArrayList<Word>()));
+            String json = storage.getString("word list", String.valueOf(new ArrayList<Word>()));
             Type type = new TypeToken<ArrayList<Word>>() {}.getType();
             WordList = gson.fromJson(json, type);
             WordListSort();
@@ -136,8 +138,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     // Method for adding a word
-    public void AddWord (String name, String meaning) {
-        WordList.add(new Word(name, meaning));
+    public void AddWord (String name, String meaning, String type) {
+        WordList.add(new Word(name, meaning, type));
         toast = Toast.makeText(getApplicationContext(), "Entry added. List Saved.", Toast.LENGTH_SHORT);
         Save();
         adapter.notifyDataSetChanged();
@@ -171,12 +173,18 @@ public class MainActivity extends AppCompatActivity {
         wordName.setHint("Type the name of the entry here");
         wordName.setHintTextColor(Color.GRAY);
 
+        final Spinner typeSelector = new Spinner(this);
+        final String[] wordTypes = {"noun", "verb", "adjective"};
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, wordTypes);
+        typeSelector.setAdapter(spinnerAdapter);
+
         final EditText wordMeaning = new EditText(this);
         wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         wordMeaning.setHint("Type any notes about the entry here");
         wordMeaning.setHintTextColor(Color.GRAY);
 
         layout.addView(wordName);
+        layout.addView(typeSelector);
         layout.addView(wordMeaning);
 
         builder.setView(layout);
@@ -186,11 +194,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialogInterface, int i) {
                 String name = wordName.getText().toString();
                 String meaning = wordMeaning.getText().toString();
+                String wordType = (String) typeSelector.getSelectedItem();
                 if (name.isEmpty() || meaning.isEmpty()) {
                     toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
                     toast.show();
                 } else {
-                    AddWord(name, meaning);
+                    AddWord(name, meaning, wordType);
                 }
             }
         });

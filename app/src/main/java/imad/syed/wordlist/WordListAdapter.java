@@ -20,10 +20,12 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordLi
     public static class WordListViewHolder extends RecyclerView.ViewHolder {
         public TextView nameItem;
         public TextView meaningItem;
+        public TextView typeItem;
         public WordListViewHolder(@NonNull View itemView) {
             super(itemView);
             nameItem = itemView.findViewById(R.id.nameView);
             meaningItem = itemView.findViewById(R.id.meaningView);
+            typeItem = itemView.findViewById(R.id.typeView);
         }
     }
 
@@ -38,6 +40,7 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordLi
     public void onBindViewHolder(@NonNull WordListViewHolder holder, int position) {
         holder.nameItem.setText(mWordList.get(position).getName());
         holder.meaningItem.setText(mWordList.get(position).getMeaning());
+        holder.typeItem.setText(mWordList.get(position).getType());
     }
 
     @Override

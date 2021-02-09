@@ -43,6 +43,14 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
+                    android:id="@+id/typeView"
+                    android:layout_width="346dp"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:typeface="serif"
+                    android:layout_gravity="center"/>
+
+                <TextView
                     android:id="@+id/meaningView"
                     android:textStyle="italic"
                     android:layout_width="match_parent"

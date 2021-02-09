@@ -19,7 +19,4 @@
       <item name="android:fontFamily">@font/helvetica_font</item>
       <item name="android:textColor">#FFFFFF</item>
   </style>
-  <style name="AlertDialog.AppCompat.Black">
-      <item name="android:colorPrimary">#303030</item>
-  </style>
 </resources>
