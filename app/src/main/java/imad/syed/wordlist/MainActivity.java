@@ -17,11 +17,9 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -170,21 +168,21 @@ public class MainActivity extends AppCompatActivity {
 
         final EditText wordName = new EditText(this);
         wordName.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-        wordName.setHint("Type the name of the entry here");
+        wordName.setHint("Enter the name of the entry here");
         wordName.setHintTextColor(Color.GRAY);
 
-        final Spinner typeSelector = new Spinner(this);
-        final String[] wordTypes = {"noun", "verb", "adjective"};
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, wordTypes);
-        typeSelector.setAdapter(spinnerAdapter);
+        final EditText wordType = new EditText(this);
+        wordType.setInputType(InputType.TYPE_CLASS_TEXT);
+        wordType.setHint("Enter the type of your entry here");
+        wordType.setHintTextColor(Color.GRAY);
 
         final EditText wordMeaning = new EditText(this);
         wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-        wordMeaning.setHint("Type any notes about the entry here");
+        wordMeaning.setHint("Enter any notes about the entry here");
         wordMeaning.setHintTextColor(Color.GRAY);
 
         layout.addView(wordName);
-        layout.addView(typeSelector);
+        layout.addView(wordType);
         layout.addView(wordMeaning);
 
         builder.setView(layout);
@@ -194,12 +192,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialogInterface, int i) {
                 String name = wordName.getText().toString();
                 String meaning = wordMeaning.getText().toString();
-                String wordType = (String) typeSelector.getSelectedItem();
+                String type = wordType.getText().toString().toLowerCase();
                 if (name.isEmpty() || meaning.isEmpty()) {
                     toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
                     toast.show();
                 } else {
-                    AddWord(name, meaning, wordType);
+                    AddWord(name, meaning, type);
                 }
             }
         });

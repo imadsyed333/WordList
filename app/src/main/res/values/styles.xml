@@ -10,7 +10,7 @@
   <style name="ToolbarTitleText">
       <item name="android:textSize">40sp</item>
       <item name="android:fontFamily">@font/helvetica_font</item>
-      <item name="android:textColor">#FFFFFF</item>
+      <item name="android:textColor">#303030</item>
       <item name="android:textStyle">bold</item>
       <item name="android:textColorHighlight">#00B1BF</item>
   </style>

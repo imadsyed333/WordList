@@ -17,6 +17,7 @@
             app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed"
             app:contentScrim="?attr/colorAccent"
             app:title="WordList"
+            android:background="#00B1BF"
             app:expandedTitleTextAppearance="@style/ToolbarTitleText"
             app:collapsedTitleTextAppearance="@style/ToolbarTitleTextCollapsed">
 
