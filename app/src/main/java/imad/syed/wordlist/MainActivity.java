@@ -3,6 +3,7 @@ package imad.syed.wordlist;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.widget.SearchView;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     ItemTouchHelper itemTouchHelper;
     FloatingActionButton fabAdd, fabUndo;
     RecyclerView.OnScrollListener onScrollListener;
+    SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         fabUndo = findViewById(R.id.btnUndo);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
+        searchView = findViewById(R.id.wordSearch);
         deletedList = new ArrayList<>();
         clearedList = new ArrayList<>();
         WordList = new ArrayList<>();
@@ -80,11 +83,11 @@ public class MainActivity extends AppCompatActivity {
                     int i = viewHolder.getAdapterPosition();
                     deletedList.add(WordList.get(i));
                     WordList.remove(i);
-                    toast = Toast.makeText(getApplicationContext(), "Entry deleted. List Saved.", Toast.LENGTH_SHORT);
-                    toast.show();
                     WordListSort();
                     adapter.notifyDataSetChanged();
                     Save();
+                    toast = Toast.makeText(getApplicationContext(), "Entry deleted. List Saved.", Toast.LENGTH_SHORT);
+                    toast.show();
                     if (!fabUndo.isShown()) {
                         fabUndo.show();
                     }
@@ -111,6 +114,23 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         recyclerView.addOnScrollListener(onScrollListener);
+
+        //Code for search queries
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                adapter.filter(query);
+                adapter.notifyDataSetChanged();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.filter(newText);
+                adapter.notifyDataSetChanged();
+                return true;
+            }
+        });
     }
     // Method for saving the list
     public void Save () {
@@ -140,8 +160,8 @@ public class MainActivity extends AppCompatActivity {
         WordList.add(new Word(name, meaning, type));
         toast = Toast.makeText(getApplicationContext(), "Entry added. List Saved.", Toast.LENGTH_SHORT);
         Save();
-        adapter.notifyDataSetChanged();
         WordListSort();
+        adapter.notifyDataSetChanged();
         toast.show();
     }
     //Method for undoing DeleteWord

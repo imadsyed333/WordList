@@ -3,6 +3,7 @@
     <string name="type_here">Type Here</string>
     <string name="delete_entry">Delete Entry</string>
     <string name="add_entry">Add Entry</string>
+    <string name="undo_delete">Undo Delete</string>
     <string name="save_list">Save List</string>
     <string name="clear_field">Clear Field</string>
     <string name="clear_list">Clear List</string>
