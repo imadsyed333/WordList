@@ -56,9 +56,6 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordLi
     }
     public void filter(String text) {
         List<Word> filteredList = new ArrayList<>();
-        for (Word word : listCopy) {
-            System.out.println(word.mName);
-        }
         if (!text.isEmpty()) {
             for (Word word : listCopy) {
                 if (word.mName.toLowerCase().contains(text.toLowerCase())) {

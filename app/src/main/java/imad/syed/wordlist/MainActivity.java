@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         //Code for "swipe left to delete"
-        simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+        simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
@@ -79,8 +79,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int i = viewHolder.getAdapterPosition();
                 if (direction == ItemTouchHelper.LEFT) {
-                    int i = viewHolder.getAdapterPosition();
                     deletedList.add(WordList.get(i));
                     WordList.remove(i);
                     WordListSort();
@@ -91,6 +91,8 @@ public class MainActivity extends AppCompatActivity {
                     if (!fabUndo.isShown()) {
                         fabUndo.show();
                     }
+                } else if (direction == ItemTouchHelper.RIGHT) {
+                    openEditWordDialog(i);
                 }
             }
         };
@@ -178,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
             fabUndo.hide();
         }
     }
-    //Method for opening Dialog
+    //Method for creating a Dialog when adding words
     public void openAddWordDialog (View view) {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -229,7 +231,70 @@ public class MainActivity extends AppCompatActivity {
         });
         builder.show();
     }
+    //Method for creating Dialog when editing word
+    public void openEditWordDialog (final int position) {
+        String name = WordList.get(position).getName();
+        String type = WordList.get(position).getType();
+        String meaning = WordList.get(position).getMeaning();
 
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Add Entry");
+
+        final EditText wordName = new EditText(this);
+        wordName.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        wordName.setHint("Enter the name of the entry here");
+        wordName.setText(name);
+        wordName.setHintTextColor(Color.GRAY);
+
+        final EditText wordType = new EditText(this);
+        wordType.setInputType(InputType.TYPE_CLASS_TEXT);
+        wordType.setHint("Enter the type of your entry here");
+        wordType.setText(type);
+        wordType.setHintTextColor(Color.GRAY);
+
+        final EditText wordMeaning = new EditText(this);
+        wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        wordMeaning.setHint("Enter any notes about the entry here");
+        wordMeaning.setText(meaning);
+        wordMeaning.setHintTextColor(Color.GRAY);
+
+        layout.addView(wordName);
+        layout.addView(wordType);
+        layout.addView(wordMeaning);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Confirm Changes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                String name = wordName.getText().toString();
+                String meaning = wordMeaning.getText().toString();
+                String type = wordType.getText().toString().toLowerCase();
+                if (name.isEmpty() || meaning.isEmpty()) {
+                    toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
+                    toast.show();
+                } else {
+                    WordList.remove(position);
+                    AddWord(name, meaning, type);
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+                for (Word word : WordList) {
+                    System.out.println(word.mName);
+                }
+                adapter.notifyDataSetChanged();
+            }
+        });
+        builder.show();
+    }
+    //Method that compares entries by name
     public void WordListSort() {
         Collections.sort(WordList, new Comparator<Word>() {
             @Override
