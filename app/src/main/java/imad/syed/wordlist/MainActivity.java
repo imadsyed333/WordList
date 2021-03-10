@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = storage.edit();
         Gson gson = new Gson();
         String json = gson.toJson(WordList);
-        editor.putString("word list", json);
+        editor.putString("wordlist", json);
         editor.apply();
     }
     // Method for retrieving the saved list
@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
             Gson gson = new Gson();
-            String json = storage.getString("word list", String.valueOf(new ArrayList<Word>()));
+            String json = storage.getString("wordlist", String.valueOf(new ArrayList<Word>()));
             Type type = new TypeToken<ArrayList<Word>>() {}.getType();
             WordList = gson.fromJson(json, type);
             WordListSort();
@@ -233,9 +233,7 @@ public class MainActivity extends AppCompatActivity {
     }
     //Method for creating Dialog when editing word
     public void openEditWordDialog (final int position) {
-        String name = WordList.get(position).getName();
-        String type = WordList.get(position).getType();
-        String meaning = WordList.get(position).getMeaning();
+        final Word currentWord = WordList.get(position);
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -246,19 +244,19 @@ public class MainActivity extends AppCompatActivity {
         final EditText wordName = new EditText(this);
         wordName.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         wordName.setHint("Enter the name of the entry here");
-        wordName.setText(name);
+        wordName.setText(currentWord.getName());
         wordName.setHintTextColor(Color.GRAY);
 
         final EditText wordType = new EditText(this);
         wordType.setInputType(InputType.TYPE_CLASS_TEXT);
         wordType.setHint("Enter the type of your entry here");
-        wordType.setText(type);
+        wordType.setText(currentWord.getType());
         wordType.setHintTextColor(Color.GRAY);
 
         final EditText wordMeaning = new EditText(this);
         wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         wordMeaning.setHint("Enter any notes about the entry here");
-        wordMeaning.setText(meaning);
+        wordMeaning.setText(currentWord.getMeaning());
         wordMeaning.setHintTextColor(Color.GRAY);
 
         layout.addView(wordName);
@@ -277,8 +275,10 @@ public class MainActivity extends AppCompatActivity {
                     toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
                     toast.show();
                 } else {
-                    WordList.remove(position);
-                    AddWord(name, meaning, type);
+                    currentWord.mName = name;
+                    currentWord.mType = type;
+                    currentWord.mMeaning = meaning;
+                    adapter.notifyDataSetChanged();
                 }
             }
         });
@@ -286,9 +286,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 dialogInterface.cancel();
-                for (Word word : WordList) {
-                    System.out.println(word.mName);
-                }
                 adapter.notifyDataSetChanged();
             }
         });
