@@ -1,52 +1,72 @@
 package imad.syed.wordlist;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.os.Bundle;
+import android.service.autofill.Dataset;
+import android.text.InputType;
+import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.SearchView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.os.Bundle;
-
-import android.text.InputType;
-import android.util.Log;
-import android.view.View;
-
-import android.widget.EditText;
-
-import android.widget.LinearLayout;
-import android.widget.Toast;
-
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     // Variable Declarations
     RecyclerView recyclerView;
     WordListAdapter adapter;
     RecyclerView.LayoutManager layoutManager;
-    List<Word> WordList;
-    List<Word> deletedList;
-    List<Word> clearedList;
+    ArrayList<Word> WordList;
+    ArrayList<Word> deletedList;
+    ArrayList<Word> clearedList;
+    ArrayList<String> oldWordList;
     Toast toast;
     ItemTouchHelper.SimpleCallback simpleCallback;
     ItemTouchHelper itemTouchHelper;
     FloatingActionButton fabAdd, fabUndo;
     RecyclerView.OnScrollListener onScrollListener;
     SearchView searchView;
+    FirebaseDatabase database;
+    DatabaseReference myRef;
+    DatabaseReference userRef;
+    String passcode;
+    FirebaseAuth mAuth;
+    String TAG = "AnonAuth";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +82,14 @@ public class MainActivity extends AppCompatActivity {
         deletedList = new ArrayList<>();
         clearedList = new ArrayList<>();
         WordList = new ArrayList<>();
+        oldWordList = new ArrayList<>();
         fabUndo.hide();
 
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("WordListData");
+        userRef = database.getReference("users");
+
+        RetrievePasscode();
         RetrieveList();
 
         //Code for the RecyclerView adapter
@@ -79,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                int i = viewHolder.getAdapterPosition();
+                int i = viewHolder.getLayoutPosition();
                 if (direction == ItemTouchHelper.LEFT) {
                     deletedList.add(WordList.get(i));
                     WordList.remove(i);
@@ -136,27 +162,82 @@ public class MainActivity extends AppCompatActivity {
     }
     // Method for saving the list
     public void Save () {
+//        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+//        SharedPreferences.Editor editor = storage.edit();
+//        Gson gson = new Gson();
+//        String json = gson.toJson(WordList);
+//        editor.putString("wordlist", json);
+//        editor.apply();
+        Map<String, Object> WordListPackage = new HashMap<>();
+        WordListPackage.put(passcode, WordList);
+        myRef.updateChildren(WordListPackage);
+    }
+    // Method for saving the passcode
+    public void SavePasscode () {
         SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
         SharedPreferences.Editor editor = storage.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(WordList);
-        editor.putString("wordlist", json);
+        editor.putString("passcode", passcode);
         editor.apply();
     }
     // Method for retrieving the saved list
     public void RetrieveList (){
-        try {
-            SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-            Gson gson = new Gson();
-            String json = storage.getString("wordlist", String.valueOf(new ArrayList<Word>()));
-            Type type = new TypeToken<ArrayList<Word>>() {}.getType();
-            WordList = gson.fromJson(json, type);
-            WordListSort();
-            adapter.notifyDataSetChanged();
-        } catch (NullPointerException ne) {
-            Log.d("wordListError", "The WordList appears to be empty");
+//        try {
+//            SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+//            Gson gson = new Gson();
+//            String json = storage.getString("wordlist", String.valueOf(new ArrayList<Word>()));
+//            Type type = new TypeToken<ArrayList<Word>>() {}.getType();
+//            WordList = gson.fromJson(json, type);
+//            WordListSort();
+//            adapter.notifyDataSetChanged();
+//        } catch (NullPointerException ne) {
+//            Log.d("wordListError", "The WordList appears to be empty");
+//            System.out.println("Error, WordList is apparently empty");
+//        }
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                WordList.clear();
+//                System.out.println(snapshot.getChildren() + ", " + snapshot.getValue());
+//                System.out.println(passcode.isEmpty());
+                for (DataSnapshot wordListSnapshot : snapshot.getChildren()) {
+//                    System.out.println(wordListSnapshot.getValue());
+                    if (Objects.equals(wordListSnapshot.getKey(), passcode)) {
+                        for (DataSnapshot wordSnapshot : wordListSnapshot.getChildren()) {
+                            Map<String, String> wordMap = (Map<String, String>) wordSnapshot.getValue();
+                            assert wordMap != null;
+                            WordList.add(new Word(wordMap.get("name"), wordMap.get("meaning"), wordMap.get("type")));
+                        }
+                    }
+                }
+                adapter.notifyDataSetChanged();
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("WordListData", "Data not retrieved");
+            }
+        });
+    }
+    // Method for retrieving passcode
+    public void RetrievePasscode () {
+        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        passcode = storage.getString("passcode", "");
+        assert passcode != null;
+        if (passcode.isEmpty()) {
+            openPasswordDialog();
         }
     }
+    /// Method for retrieving old WordList
+//    public void RetrieveOldWordList (){
+//        try {
+//            SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+//            Gson gson = new Gson();
+//            String json = storage.getString("word list", String.valueOf(new ArrayList<String>()));
+//            Type type = new TypeToken<ArrayList<String>>() {}.getType();
+//            oldWordList = gson.fromJson(json, type);
+//        } catch (Exception e) {
+//            Log.d("oldWordListError", "The old WordList appears to be empty");
+//        }
+//    }
     // Method for adding a word
     public void AddWord (String name, String meaning, String type) {
         WordList.add(new Word(name, meaning, type));
@@ -180,6 +261,12 @@ public class MainActivity extends AppCompatActivity {
             fabUndo.hide();
         }
     }
+//    // Method that opens the oldWordList Activity
+//    public void openOldWordList (View view) {
+//        Intent intent = new Intent(this, OldWordList.class);
+//        intent.putStringArrayListExtra("old list", oldWordList);
+//        startActivity(intent);
+//    }
     //Method for creating a Dialog when adding words
     public void openAddWordDialog (View view) {
         LinearLayout layout = new LinearLayout(this);
@@ -209,26 +296,25 @@ public class MainActivity extends AppCompatActivity {
 
         builder.setView(layout);
 
-        builder.setPositiveButton("Add Entry", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                String name = wordName.getText().toString();
-                String meaning = wordMeaning.getText().toString();
-                String type = wordType.getText().toString().toLowerCase();
-                if (name.isEmpty() || meaning.isEmpty()) {
-                    toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
-                    toast.show();
-                } else {
-                    AddWord(name, meaning, type);
-                }
+        builder.setPositiveButton("Add Entry", (dialogInterface, i) -> {
+            String name = wordName.getText().toString();
+            String meaning = wordMeaning.getText().toString();
+            String type = wordType.getText().toString().toLowerCase();
+            if (name.isEmpty()) {
+                toast = Toast.makeText(getApplicationContext(), "Name field must not be empty", Toast.LENGTH_LONG);
+                toast.show();
+                openAddWordDialog(view);
+            }
+            else if (meaning.isEmpty()) {
+                toast = Toast.makeText(getApplicationContext(), "Meaning field must not be empty", Toast.LENGTH_LONG);
+                toast.show();
+                openAddWordDialog(view);
+            }
+            else {
+                AddWord(name, meaning, type);
             }
         });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.cancel();
-            }
-        });
+        builder.setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.cancel());
         builder.show();
     }
     //Method for creating Dialog when editing word
@@ -265,39 +351,68 @@ public class MainActivity extends AppCompatActivity {
 
         builder.setView(layout);
 
-        builder.setPositiveButton("Confirm Changes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                String name = wordName.getText().toString();
-                String meaning = wordMeaning.getText().toString();
-                String type = wordType.getText().toString().toLowerCase();
-                if (name.isEmpty() || meaning.isEmpty()) {
-                    toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
-                    toast.show();
-                } else {
-                    currentWord.mName = name;
-                    currentWord.mType = type;
-                    currentWord.mMeaning = meaning;
-                    adapter.notifyDataSetChanged();
-                }
+        builder.setPositiveButton("Confirm Changes", (dialogInterface, i) -> {
+            String name = wordName.getText().toString();
+            String meaning = wordMeaning.getText().toString();
+            String type = wordType.getText().toString().toLowerCase();
+            if (name.isEmpty()) {
+                toast = Toast.makeText(getApplicationContext(), "Name field must not be empty", Toast.LENGTH_LONG);
+                toast.show();
+                openEditWordDialog(position);
             }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.cancel();
+            else if (meaning.isEmpty()) {
+                toast = Toast.makeText(getApplicationContext(), "Meaning field must not be empty", Toast.LENGTH_LONG);
+                toast.show();
+                openEditWordDialog(position);
+            }
+            else {
+                currentWord.mName = name;
+                currentWord.mType = type;
+                currentWord.mMeaning = meaning;
                 adapter.notifyDataSetChanged();
             }
+        });
+        builder.setNegativeButton("Cancel", (dialogInterface, i) -> {
+            dialogInterface.cancel();
+            adapter.notifyDataSetChanged();
         });
         builder.show();
     }
     //Method that compares entries by name
     public void WordListSort() {
-        Collections.sort(WordList, new Comparator<Word>() {
-            @Override
-            public int compare(Word word1, Word word2) {
-                return word1.getName().compareToIgnoreCase(word2.getName());
+        Collections.sort(WordList, (word1, word2) -> word1.getName().compareToIgnoreCase(word2.getName()));
+    }
+
+    public void openPasswordDialog() {
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Password");
+
+        final EditText passWord = new EditText(this);
+        passWord.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        passWord.setHint("Type password here");
+        passWord.setHintTextColor(Color.GRAY);
+
+        layout.addView(passWord);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Confirm Password", (dialogInterface, i) -> {
+            String input = passWord.getText().toString();
+            
+            if (input.isEmpty()) {
+                toast = Toast.makeText(getApplicationContext(), "Password must not be empty", Toast.LENGTH_SHORT);
+                toast.show();
+                openPasswordDialog();
+            }
+            else {
+                passcode = input;
+                SavePasscode();
             }
         });
+        builder.setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.cancel());
+        builder.show();
     }
 }
