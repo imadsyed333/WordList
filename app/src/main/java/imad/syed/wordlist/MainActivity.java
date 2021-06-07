@@ -1,12 +1,9 @@
 package imad.syed.wordlist;
 
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.os.Bundle;
-import android.service.autofill.Dataset;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
@@ -16,30 +13,18 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.EmailAuthProvider;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,8 +50,6 @@ public class MainActivity extends AppCompatActivity {
     DatabaseReference myRef;
     DatabaseReference userRef;
     String passcode;
-    FirebaseAuth mAuth;
-    String TAG = "AnonAuth";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,12 +145,6 @@ public class MainActivity extends AppCompatActivity {
     }
     // Method for saving the list
     public void Save () {
-//        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-//        SharedPreferences.Editor editor = storage.edit();
-//        Gson gson = new Gson();
-//        String json = gson.toJson(WordList);
-//        editor.putString("wordlist", json);
-//        editor.apply();
         Map<String, Object> WordListPackage = new HashMap<>();
         WordListPackage.put(passcode, WordList);
         myRef.updateChildren(WordListPackage);
@@ -181,26 +158,11 @@ public class MainActivity extends AppCompatActivity {
     }
     // Method for retrieving the saved list
     public void RetrieveList (){
-//        try {
-//            SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-//            Gson gson = new Gson();
-//            String json = storage.getString("wordlist", String.valueOf(new ArrayList<Word>()));
-//            Type type = new TypeToken<ArrayList<Word>>() {}.getType();
-//            WordList = gson.fromJson(json, type);
-//            WordListSort();
-//            adapter.notifyDataSetChanged();
-//        } catch (NullPointerException ne) {
-//            Log.d("wordListError", "The WordList appears to be empty");
-//            System.out.println("Error, WordList is apparently empty");
-//        }
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 WordList.clear();
-//                System.out.println(snapshot.getChildren() + ", " + snapshot.getValue());
-//                System.out.println(passcode.isEmpty());
                 for (DataSnapshot wordListSnapshot : snapshot.getChildren()) {
-//                    System.out.println(wordListSnapshot.getValue());
                     if (Objects.equals(wordListSnapshot.getKey(), passcode)) {
                         for (DataSnapshot wordSnapshot : wordListSnapshot.getChildren()) {
                             Map<String, String> wordMap = (Map<String, String>) wordSnapshot.getValue();
@@ -226,18 +188,6 @@ public class MainActivity extends AppCompatActivity {
             openPasswordDialog();
         }
     }
-    /// Method for retrieving old WordList
-//    public void RetrieveOldWordList (){
-//        try {
-//            SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-//            Gson gson = new Gson();
-//            String json = storage.getString("word list", String.valueOf(new ArrayList<String>()));
-//            Type type = new TypeToken<ArrayList<String>>() {}.getType();
-//            oldWordList = gson.fromJson(json, type);
-//        } catch (Exception e) {
-//            Log.d("oldWordListError", "The old WordList appears to be empty");
-//        }
-//    }
     // Method for adding a word
     public void AddWord (String name, String meaning, String type) {
         WordList.add(new Word(name, meaning, type));
@@ -261,12 +211,6 @@ public class MainActivity extends AppCompatActivity {
             fabUndo.hide();
         }
     }
-//    // Method that opens the oldWordList Activity
-//    public void openOldWordList (View view) {
-//        Intent intent = new Intent(this, OldWordList.class);
-//        intent.putStringArrayListExtra("old list", oldWordList);
-//        startActivity(intent);
-//    }
     //Method for creating a Dialog when adding words
     public void openAddWordDialog (View view) {
         LinearLayout layout = new LinearLayout(this);
@@ -366,9 +310,7 @@ public class MainActivity extends AppCompatActivity {
                 openEditWordDialog(position);
             }
             else {
-                currentWord.mName = name;
-                currentWord.mType = type;
-                currentWord.mMeaning = meaning;
+                currentWord.setWord(name, type, meaning);
                 adapter.notifyDataSetChanged();
             }
         });

@@ -36,16 +36,6 @@
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/oldListButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="openOldWordList"
-        android:clickable="true"
-        app:srcCompat="@android:drawable/presence_away"
-        android:focusable="true"
-        android:contentDescription="@string/oldlist" />
-
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

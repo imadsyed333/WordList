@@ -22,4 +22,10 @@ public class Word {
     public String getType() {
         return mType;
     }
+
+    public void setWord(String name, String type, String meaning) {
+        this.mName = name;
+        this.mType = type;
+        this.mMeaning = meaning;
+    }
 }
