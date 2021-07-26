@@ -49,10 +49,10 @@ public class MainActivity extends AppCompatActivity {
     FloatingActionButton fabAdd, fabUndo;
     RecyclerView.OnScrollListener onScrollListener;
     SearchView searchView;
-//    FirebaseDatabase database;
-//    DatabaseReference myRef;
-//    DatabaseReference userRef;
-//    String passcode;
+    FirebaseDatabase database;
+    DatabaseReference myRef;
+    DatabaseReference userRef;
+    String passcode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,11 +71,11 @@ public class MainActivity extends AppCompatActivity {
         oldWordList = new ArrayList<>();
         fabUndo.hide();
 
-//        database = FirebaseDatabase.getInstance();
-//        myRef = database.getReference("WordListData");
-//        userRef = database.getReference("users");
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("WordListData");
+        userRef = database.getReference("users");
 
-//        RetrievePasscode();
+        RetrievePasscode();
         RetrieveList();
 
         //Code for the RecyclerView adapter
@@ -148,9 +148,9 @@ public class MainActivity extends AppCompatActivity {
     }
     // Method for saving the list
     public void Save () {
-//        Map<String, Object> WordListPackage = new HashMap<>();
-//        WordListPackage.put(passcode, WordList);
-//        myRef.updateChildren(WordListPackage);
+        Map<String, Object> WordListPackage = new HashMap<>();
+        WordListPackage.put(passcode, WordList);
+        myRef.updateChildren(WordListPackage);
         SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
         SharedPreferences.Editor editor = storage.edit();
         Gson gson = new Gson();
@@ -160,55 +160,55 @@ public class MainActivity extends AppCompatActivity {
         toast = Toast.makeText(getApplicationContext(), "List Saved.", Toast.LENGTH_SHORT);
         toast.show();
     }
-    // Method for saving the passcode (Commented out because of uselessness)
-//    public void SavePasscode () {
-//        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-//        SharedPreferences.Editor editor = storage.edit();
-//        editor.putString("passcode", passcode);
-//        editor.apply();
-//    }
+    // Method for saving the passcode
+    public void SavePasscode () {
+        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = storage.edit();
+        editor.putString("passcode", passcode);
+        editor.apply();
+    }
     // Method for retrieving the saved list
     public void RetrieveList (){
-//        myRef.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                WordList.clear();
-//                for (DataSnapshot wordListSnapshot : snapshot.getChildren()) {
-//                    if (Objects.equals(wordListSnapshot.getKey(), passcode)) {
-//                        for (DataSnapshot wordSnapshot : wordListSnapshot.getChildren()) {
-//                            Map<String, String> wordMap = (Map<String, String>) wordSnapshot.getValue();
-//                            assert wordMap != null;
-//                            WordList.add(new Word(wordMap.get("name"), wordMap.get("meaning"), wordMap.get("type")));
-//                        }
-//                    }
-//                }
-//                adapter.notifyDataSetChanged();
-//            }
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//                Log.e("WordListData", "Data not retrieved");
-//            }
-//        });
-        try {
-            SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-            Gson gson = new Gson();
-            String json = storage.getString("word list", String.valueOf(new ArrayList<Word>()));
-            Type type = new TypeToken<ArrayList<Word>>() {}.getType();
-            WordList = gson.fromJson(json, type);
-            WordListSort();
-        } catch (Exception e) {
-            WordList = new ArrayList<>();
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                WordList.clear();
+                for (DataSnapshot wordListSnapshot : snapshot.getChildren()) {
+                    if (Objects.equals(wordListSnapshot.getKey(), passcode)) {
+                        for (DataSnapshot wordSnapshot : wordListSnapshot.getChildren()) {
+                            Map<String, String> wordMap = (Map<String, String>) wordSnapshot.getValue();
+                            assert wordMap != null;
+                            WordList.add(new Word(wordMap.get("name"), wordMap.get("meaning"), wordMap.get("type")));
+                        }
+                    }
+                }
+                adapter.notifyDataSetChanged();
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("WordListData", "Data not retrieved");
+            }
+        });
+//        try {
+//            SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+//            Gson gson = new Gson();
+//            String json = storage.getString("word list", String.valueOf(new ArrayList<Word>()));
+//            Type type = new TypeToken<ArrayList<Word>>() {}.getType();
+//            WordList = gson.fromJson(json, type);
+//            WordListSort();
+//        } catch (Exception e) {
+//            WordList = new ArrayList<>();
+//        }
+    }
+    // Method for retrieving passcode
+    public void RetrievePasscode () {
+        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        passcode = storage.getString("passcode", "");
+        assert passcode != null;
+        if (passcode.isEmpty()) {
+            openPasswordDialog();
         }
     }
-    // Method for retrieving passcode (Commented out because of uselessness)
-//    public void RetrievePasscode () {
-//        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-//        passcode = storage.getString("passcode", "");
-//        assert passcode != null;
-//        if (passcode.isEmpty()) {
-//            openPasswordDialog();
-//        }
-//    }
     // Method for adding a word
     public void AddWord (String name, String meaning, String type) {
         WordList.add(new Word(name, meaning, type));
@@ -345,37 +345,37 @@ public class MainActivity extends AppCompatActivity {
     public void WordListSort() {
         Collections.sort(WordList, (word1, word2) -> word1.getName().compareToIgnoreCase(word2.getName()));
     }
-    // Method for opening the password view (Commented out for uselessness)
-//    public void openPasswordDialog() {
-//        LinearLayout layout = new LinearLayout(this);
-//        layout.setOrientation(LinearLayout.VERTICAL);
-//
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle("Enter Password");
-//
-//        final EditText passWord = new EditText(this);
-//        passWord.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
-//        passWord.setHint("Type password here");
-//        passWord.setHintTextColor(Color.GRAY);
-//
-//        layout.addView(passWord);
-//
-//        builder.setView(layout);
-//
-//        builder.setPositiveButton("Confirm Password", (dialogInterface, i) -> {
-//            String input = passWord.getText().toString();
-//
-//            if (input.isEmpty()) {
-//                toast = Toast.makeText(getApplicationContext(), "Password must not be empty", Toast.LENGTH_SHORT);
-//                toast.show();
-//                openPasswordDialog();
-//            }
-//            else {
-//                passcode = input;
-//                SavePasscode();
-//            }
-//        });
-//        builder.setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.cancel());
-//        builder.show();
-//    }
+    // Method for opening the password view
+    public void openPasswordDialog() {
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Password");
+
+        final EditText passWord = new EditText(this);
+        passWord.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        passWord.setHint("Type password here");
+        passWord.setHintTextColor(Color.GRAY);
+
+        layout.addView(passWord);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Confirm Password", (dialogInterface, i) -> {
+            String input = passWord.getText().toString();
+
+            if (input.isEmpty()) {
+                toast = Toast.makeText(getApplicationContext(), "Password must not be empty", Toast.LENGTH_SHORT);
+                toast.show();
+                openPasswordDialog();
+            }
+            else {
+                passcode = input;
+                SavePasscode();
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.cancel());
+        builder.show();
+    }
 }
