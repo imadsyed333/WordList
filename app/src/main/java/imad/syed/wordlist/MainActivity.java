@@ -24,15 +24,14 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     // Variable Declarations
@@ -53,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
     DatabaseReference myRef;
     DatabaseReference userRef;
     String passcode;
+    Random rand = new Random();
+    DecimalFormat format = new DecimalFormat("0000000");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -315,6 +316,7 @@ public class MainActivity extends AppCompatActivity {
             else {
                 currentWord.setWord(name, type, meaning);
                 adapter.notifyDataSetChanged();
+                Save();
             }
         });
         builder.setNegativeButton("Cancel", (dialogInterface, i) -> {
@@ -353,7 +355,8 @@ public class MainActivity extends AppCompatActivity {
                 openPasswordDialog();
             }
             else {
-                passcode = input;
+                String uniqueKey = Integer.toString(rand.nextInt(1000001));
+                passcode = input + uniqueKey;
                 SavePasscode();
             }
         });
