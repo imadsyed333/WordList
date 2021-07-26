@@ -151,14 +151,6 @@ public class MainActivity extends AppCompatActivity {
         Map<String, Object> WordListPackage = new HashMap<>();
         WordListPackage.put(passcode, WordList);
         myRef.updateChildren(WordListPackage);
-        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-        SharedPreferences.Editor editor = storage.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(WordList);
-        editor.putString("word list", json);
-        editor.apply();
-        toast = Toast.makeText(getApplicationContext(), "List Saved.", Toast.LENGTH_SHORT);
-        toast.show();
     }
     // Method for saving the passcode
     public void SavePasscode () {
