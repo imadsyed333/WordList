@@ -356,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
             }
             else {
                 String uniqueKey = Integer.toString(rand.nextInt(1000001));
-                passcode = input + uniqueKey;
+                passcode = input + String.format(uniqueKey, format);
                 SavePasscode();
             }
         });
