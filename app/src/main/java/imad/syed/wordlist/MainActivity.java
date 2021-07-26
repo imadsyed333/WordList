@@ -189,16 +189,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("WordListData", "Data not retrieved");
             }
         });
-//        try {
-//            SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-//            Gson gson = new Gson();
-//            String json = storage.getString("word list", String.valueOf(new ArrayList<Word>()));
-//            Type type = new TypeToken<ArrayList<Word>>() {}.getType();
-//            WordList = gson.fromJson(json, type);
-//            WordListSort();
-//        } catch (Exception e) {
-//            WordList = new ArrayList<>();
-//        }
     }
     // Method for retrieving passcode
     public void RetrievePasscode () {
