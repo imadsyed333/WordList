@@ -324,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
     public void WordListSort() {
         Collections.sort(WordList, (word1, word2) -> word1.getName().compareToIgnoreCase(word2.getName()));
     }
-
+    // Method for opening the password view
     public void openPasswordDialog() {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -343,7 +343,7 @@ public class MainActivity extends AppCompatActivity {
 
         builder.setPositiveButton("Confirm Password", (dialogInterface, i) -> {
             String input = passWord.getText().toString();
-            
+
             if (input.isEmpty()) {
                 toast = Toast.makeText(getApplicationContext(), "Password must not be empty", Toast.LENGTH_SHORT);
                 toast.show();
