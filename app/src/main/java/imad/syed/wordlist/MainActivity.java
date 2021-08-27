@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -235,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
 
         final EditText wordMeaning = new EditText(this);
         wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        wordMeaning.setSingleLine(false);
         wordMeaning.setHint("Enter any notes about the entry here");
         wordMeaning.setHintTextColor(Color.GRAY);
 
@@ -267,8 +269,6 @@ public class MainActivity extends AppCompatActivity {
     }
     //Method for creating Dialog when editing word
     public void openEditWordDialog (final int position) {
-        final Word currentWord = WordList.get(position);
-
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -278,20 +278,23 @@ public class MainActivity extends AppCompatActivity {
         final EditText wordName = new EditText(this);
         wordName.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         wordName.setHint("Enter the name of the entry here");
-        wordName.setText(currentWord.getName());
         wordName.setHintTextColor(Color.GRAY);
 
         final EditText wordType = new EditText(this);
         wordType.setInputType(InputType.TYPE_CLASS_TEXT);
         wordType.setHint("Enter the type of your entry here");
-        wordType.setText(currentWord.getType());
         wordType.setHintTextColor(Color.GRAY);
 
         final EditText wordMeaning = new EditText(this);
         wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        wordMeaning.setSingleLine(false);
         wordMeaning.setHint("Enter any notes about the entry here");
-        wordMeaning.setText(currentWord.getMeaning());
         wordMeaning.setHintTextColor(Color.GRAY);
+
+        final Word currentWord = WordList.get(position);
+        wordName.setText(currentWord.getName());
+        wordType.setText(currentWord.getType());
+        wordMeaning.setText(currentWord.getMeaning());
 
         layout.addView(wordName);
         layout.addView(wordType);
@@ -314,7 +317,9 @@ public class MainActivity extends AppCompatActivity {
                 openEditWordDialog(position);
             }
             else {
-                currentWord.setWord(name, type, meaning);
+                if (position >= 0) {
+                    currentWord.setWord(name, type, meaning);
+                }
                 adapter.notifyDataSetChanged();
                 Save();
             }
@@ -325,6 +330,7 @@ public class MainActivity extends AppCompatActivity {
         });
         builder.show();
     }
+
     //Method that compares entries by name
     public void WordListSort() {
         Collections.sort(WordList, (word1, word2) -> word1.getName().compareToIgnoreCase(word2.getName()));
