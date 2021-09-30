@@ -28,4 +28,8 @@ public class Word {
         this.mType = type;
         this.mMeaning = meaning;
     }
+
+    public String toString() {
+        return "(Name: " + this.mName + ", Meaning: " + this.mMeaning + ", Type: " + this.mType + ")";
+    }
 }
