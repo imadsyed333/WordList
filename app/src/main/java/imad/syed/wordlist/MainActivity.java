@@ -25,7 +25,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,12 +80,13 @@ public class MainActivity extends AppCompatActivity {
         myRef = database.getReference("WordListData");
         userRef = database.getReference("users");
 
-        RetrievePasscode();
-        RetrieveList();
-
         //Code for the RecyclerView adapter
         adapter = new WordListAdapter(WordList);
         recyclerView.setAdapter(adapter);
+
+        TestPutWords();
+        RetrievePasscode();
+        RetrieveList();
 
         //Code for "swipe left to delete"
         simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -161,8 +165,20 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("passcode", passcode);
         editor.apply();
     }
+    public void TestPutWords() {
+        oldWordList.add("Kowalski");
+        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = storage.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(oldWordList);
+        editor.putString("word list", json);
+        editor.apply();
+        toast = Toast.makeText(getApplicationContext(), "Old List Saved.", Toast.LENGTH_SHORT);
+        toast.show();
+    }
     // Method for retrieving the saved list
     public void RetrieveList (){
+        RetrieveOldList();
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -177,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 adapter.notifyDataSetChanged();
+                System.out.println("Data Retrieved: " + WordList);
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
@@ -193,14 +210,37 @@ public class MainActivity extends AppCompatActivity {
             openPasswordDialog();
         }
     }
+    // Method for retrieving old list
+    public void RetrieveOldList() {
+        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = storage.getString("word list", null);
+        Type type = new TypeToken<ArrayList<String>>() {}.getType();
+        oldWordList = gson.fromJson(json, type);
+        System.out.println(oldWordList);
+
+        if (oldWordList == null) {
+            oldWordList = new ArrayList<>();
+            System.out.println("I DIDN'T FIND ANYTHING");
+        }
+        else {
+            convertWords();
+        }
+    }
+    // Method for transferring words from oldWordList into WordList
+    public void convertWords() {
+        for (String entry: oldWordList) {
+            WordList.add(new Word(entry, "", ""));
+        }
+    }
     // Method for adding a word
     public void AddWord (String name, String meaning, String type) {
         WordList.add(new Word(name, meaning, type));
         toast = Toast.makeText(getApplicationContext(), "Entry added. List Saved.", Toast.LENGTH_SHORT);
-        Save();
         WordListSort();
         adapter.notifyDataSetChanged();
         toast.show();
+        Save();
     }
     //Method for undoing DeleteWord
     public void UndoAction (View view) {
