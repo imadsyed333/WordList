@@ -1,11 +1,13 @@
 package imad.syed.wordlist;
 
+import androidx.annotation.NonNull;
+
 public class Word {
     String mName;
     String mMeaning;
     String mType;
 
-    Word(String name, String meaning, String type) {
+    public Word(String name, String meaning, String type) {
         this.mName = name;
         this.mMeaning = meaning;
         this.mType = type;
@@ -29,6 +31,7 @@ public class Word {
         this.mMeaning = meaning;
     }
 
+    @NonNull
     public String toString() {
         return "(Name: " + this.mName + ", Meaning: " + this.mMeaning + ", Type: " + this.mType + ")";
     }
