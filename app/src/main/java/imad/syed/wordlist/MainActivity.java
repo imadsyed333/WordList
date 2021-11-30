@@ -4,7 +4,9 @@ import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.text.InputType;
+import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -13,22 +15,31 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -50,10 +61,7 @@ public class MainActivity extends AppCompatActivity {
     SearchView searchView;
     FirebaseDatabase database;
     DatabaseReference myRef;
-    DatabaseReference userRef;
     String passcode;
-    Random rand = new Random();
-    DecimalFormat format = new DecimalFormat("0000000");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,16 +82,34 @@ public class MainActivity extends AppCompatActivity {
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("WordListData");
-        userRef = database.getReference("users");
-
-        RetrievePasscode();
-        RetrieveList();
 
         //Code for the RecyclerView adapter
         adapter = new WordListAdapter(WordList);
         recyclerView.setAdapter(adapter);
 
-        //Code for "swipe left to delete"
+        RetrievePasscode();
+
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                WordList.clear();
+                DataSnapshot wordListSnapshot = snapshot.child(passcode);
+                for (DataSnapshot wordSnapshot: wordListSnapshot.getChildren()) {
+                    HashMap<String, String> wordMap = (HashMap<String, String>) wordSnapshot.getValue();
+                    assert wordMap != null;
+                    Word word = new Word(wordMap.get("name"), wordMap.get("meaning"), wordMap.get("type"));
+                    WordList.add(word);
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+        //Code for "swipe left to delete" and "swipe right to edit"
         simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
@@ -147,59 +173,75 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     // Method for saving the list
-    public void Save () {
-        Map<String, Object> WordListPackage = new HashMap<>();
-        WordListPackage.put(passcode, WordList);
-        myRef.updateChildren(WordListPackage);
+    public void Save() {
+        myRef.child(passcode).setValue(WordList);
     }
+
     // Method for saving the passcode
-    public void SavePasscode () {
+    public void SavePasscode() {
         SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
         SharedPreferences.Editor editor = storage.edit();
         editor.putString("passcode", passcode);
         editor.apply();
     }
-    // Method for retrieving the saved list
-    public void RetrieveList (){
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                WordList.clear();
-                for (DataSnapshot wordListSnapshot : snapshot.getChildren()) {
-                    if (Objects.equals(wordListSnapshot.getKey(), passcode)) {
-                        for (DataSnapshot wordSnapshot : wordListSnapshot.getChildren()) {
-                            Map<String, String> wordMap = (Map<String, String>) wordSnapshot.getValue();
-                            assert wordMap != null;
-                            WordList.add(new Word(wordMap.get("name"), wordMap.get("meaning"), wordMap.get("type")));
-                        }
-                    }
-                }
-                adapter.notifyDataSetChanged();
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("WordListData", "Data not retrieved");
-            }
-        });
+    public void TestPutWords() {
+        oldWordList.add("Kowalski is a legendary penguin who aces pizza");
+        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = storage.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(oldWordList);
+        editor.putString("word list", json);
+        editor.apply();
+        toast = Toast.makeText(getApplicationContext(), "Old List Saved.", Toast.LENGTH_SHORT);
+        toast.show();
     }
     // Method for retrieving passcode
-    public void RetrievePasscode () {
+    public void RetrievePasscode() {
         SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
         passcode = storage.getString("passcode", "");
         assert passcode != null;
         if (passcode.isEmpty()) {
-            openPasswordDialog();
+            passcode = myRef.push().getKey();
+            SavePasscode();
         }
+    }
+    // Method for retrieving old list
+    public void RetrieveOldList(View view) {
+        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = storage.getString("word list", null);
+        Type type = new TypeToken<ArrayList<String>>() {}.getType();
+        oldWordList = gson.fromJson(json, type);
+        System.out.println(oldWordList);
+
+        if (oldWordList == null) {
+            oldWordList = new ArrayList<>();
+            System.out.println("I DIDN'T FIND ANYTHING");
+        }
+        else {
+            convertWords();
+        }
+    }
+    // Method for transferring words from oldWordList into WordList
+    public void convertWords () {
+        for (String entry: oldWordList) {
+            String[] words = entry.split(" ");
+            WordList.add(new Word(words[0], entry, ""));
+        }
+        WordListSort();
+        adapter.notifyDataSetChanged();
+        Save();
     }
     // Method for adding a word
     public void AddWord (String name, String meaning, String type) {
         WordList.add(new Word(name, meaning, type));
         toast = Toast.makeText(getApplicationContext(), "Entry added. List Saved.", Toast.LENGTH_SHORT);
-        Save();
         WordListSort();
         adapter.notifyDataSetChanged();
         toast.show();
+        Save();
     }
     //Method for undoing DeleteWord
     public void UndoAction (View view) {
@@ -235,6 +277,7 @@ public class MainActivity extends AppCompatActivity {
 
         final EditText wordMeaning = new EditText(this);
         wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        wordMeaning.setSingleLine(false);
         wordMeaning.setHint("Enter any notes about the entry here");
         wordMeaning.setHintTextColor(Color.GRAY);
 
@@ -267,8 +310,6 @@ public class MainActivity extends AppCompatActivity {
     }
     //Method for creating Dialog when editing word
     public void openEditWordDialog (final int position) {
-        final Word currentWord = WordList.get(position);
-
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -278,20 +319,23 @@ public class MainActivity extends AppCompatActivity {
         final EditText wordName = new EditText(this);
         wordName.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         wordName.setHint("Enter the name of the entry here");
-        wordName.setText(currentWord.getName());
         wordName.setHintTextColor(Color.GRAY);
 
         final EditText wordType = new EditText(this);
         wordType.setInputType(InputType.TYPE_CLASS_TEXT);
         wordType.setHint("Enter the type of your entry here");
-        wordType.setText(currentWord.getType());
         wordType.setHintTextColor(Color.GRAY);
 
         final EditText wordMeaning = new EditText(this);
         wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        wordMeaning.setSingleLine(false);
         wordMeaning.setHint("Enter any notes about the entry here");
-        wordMeaning.setText(currentWord.getMeaning());
         wordMeaning.setHintTextColor(Color.GRAY);
+
+        final Word currentWord = WordList.get(position);
+        wordName.setText(currentWord.getName());
+        wordType.setText(currentWord.getType());
+        wordMeaning.setText(currentWord.getMeaning());
 
         layout.addView(wordName);
         layout.addView(wordType);
@@ -314,7 +358,9 @@ public class MainActivity extends AppCompatActivity {
                 openEditWordDialog(position);
             }
             else {
-                currentWord.setWord(name, type, meaning);
+                if (position >= 0) {
+                    currentWord.setWord(name, type, meaning);
+                }
                 adapter.notifyDataSetChanged();
                 Save();
             }
@@ -325,42 +371,9 @@ public class MainActivity extends AppCompatActivity {
         });
         builder.show();
     }
+
     //Method that compares entries by name
     public void WordListSort() {
         Collections.sort(WordList, (word1, word2) -> word1.getName().compareToIgnoreCase(word2.getName()));
-    }
-    // Method for opening the password view
-    public void openPasswordDialog() {
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Password");
-
-        final EditText passWord = new EditText(this);
-        passWord.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        passWord.setHint("Type password here");
-        passWord.setHintTextColor(Color.GRAY);
-
-        layout.addView(passWord);
-
-        builder.setView(layout);
-
-        builder.setPositiveButton("Confirm Password", (dialogInterface, i) -> {
-            String input = passWord.getText().toString();
-
-            if (input.isEmpty()) {
-                toast = Toast.makeText(getApplicationContext(), "Password must not be empty", Toast.LENGTH_SHORT);
-                toast.show();
-                openPasswordDialog();
-            }
-            else {
-                String uniqueKey = Integer.toString(rand.nextInt(1000001));
-                passcode = input + String.format(uniqueKey, format);
-                SavePasscode();
-            }
-        });
-        builder.setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.cancel());
-        builder.show();
     }
 }

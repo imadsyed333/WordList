@@ -14,7 +14,7 @@
             android:id="@+id/collapsingToolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:toolbarId="@+id/toolbar"
+            app:toolbarId="@+id/btnRetrieveOldList"
             app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed"
             app:contentScrim="?attr/colorAccent"
             app:title="WordList"
@@ -28,7 +28,7 @@
                 android:id="@+id/wordSearch"/>
 
             <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+                android:id="@+id/btnRetrieveOldList"
                 android:layout_height="?attr/actionBarSize"
                 android:layout_width="match_parent">
             </androidx.appcompat.widget.Toolbar>
@@ -51,7 +51,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+            app:layout_constraintTop_toBottomOf="@+id/btnRetrieveOldList" />
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -80,4 +80,15 @@
         android:tint="#303030"
         android:backgroundTint="#00B1BF"
         android:focusable="true" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:onClick="RetrieveOldList"
+        android:layout_gravity="top|end"
+        android:contentDescription="@string/add_old_words"
+        android:focusable="true"
+        app:srcCompat="@android:drawable/ic_menu_rotate" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
