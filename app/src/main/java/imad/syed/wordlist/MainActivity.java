@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     List<Word> WordList;
     List<Word> deletedList;
     List<Word> clearedList;
+    List<String> oldWordList;
     Toast toast;
     ItemTouchHelper.SimpleCallback simpleCallback;
     ItemTouchHelper itemTouchHelper;
@@ -62,9 +63,12 @@ public class MainActivity extends AppCompatActivity {
         deletedList = new ArrayList<>();
         clearedList = new ArrayList<>();
         WordList = new ArrayList<>();
+        oldWordList = new ArrayList<>();
         fabUndo.hide();
 
+        TestPutWords();
         RetrieveList();
+        RetrieveOldList();
 
         //Code for the RecyclerView adapter
         adapter = new WordListAdapter(WordList);
@@ -155,6 +159,39 @@ public class MainActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
         } catch (NullPointerException ne) {
             Log.d("wordListError", "The WordList appears to be empty");
+        }
+    }
+
+    public void TestPutWords() {
+        List<String> oldWords = new ArrayList<>();
+        oldWords.add("Kowalski is a legendary penguin that aces pizza");
+        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = storage.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(oldWords);
+        editor.putString("word list", json);
+        editor.apply();
+    }
+
+    public void RetrieveOldList() {
+        try {
+            SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+            Gson gson = new Gson();
+            String json = storage.getString("word list", String.valueOf(new ArrayList<String>()));
+            Type type = new TypeToken<ArrayList<String>>() {}.getType();
+            oldWordList = gson.fromJson(json, type);
+            if (!oldWordList.isEmpty()) {
+                convertWords();
+            }
+        } catch (NullPointerException ne) {
+            Log.d("oldListError", "The old WordList appears to be empty");
+        }
+    }
+
+    public void convertWords() {
+        for (String entry : oldWordList) {
+            String[] words = entry.split(" ");
+            AddWord(words[0], entry, "");
         }
     }
     // Method for adding a word
