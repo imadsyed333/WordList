@@ -16,4 +16,7 @@
     <string name="textview">TextView</string>
     <string name="combines_old_wordlist_with_new_wordlist">Combines old WordList with new WordList</string>
     <string name="oldListMessage">Are you sure you want to retrive old words?</string>
+    <string name="enter_name_of_entry">Enter name of entry</string>
+    <string name="enter_type_of_entry">Enter type of entry</string>
+    <string name="enter_meaning_of_entry">Enter meaning of entry</string>
 </resources>
