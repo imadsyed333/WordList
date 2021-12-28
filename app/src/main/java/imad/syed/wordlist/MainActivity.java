@@ -3,6 +3,7 @@ package imad.syed.wordlist;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.view.LayoutInflater;
 import android.widget.SearchView;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -218,35 +219,16 @@ public class MainActivity extends AppCompatActivity {
     }
     //Method for creating a Dialog when adding words
     public void openAddWordDialog (View view) {
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         builder.setTitle("Add Entry");
 
-        final EditText wordName = new EditText(this);
-        wordName.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-        wordName.setHint("Enter the name of the entry here");
-        wordName.setTextColor(Color.WHITE);
-        wordName.setHintTextColor(Color.GRAY);
+        LayoutInflater inflater = getLayoutInflater();
 
-        final EditText wordType = new EditText(this);
-        wordType.setInputType(InputType.TYPE_CLASS_TEXT);
-        wordType.setHint("Enter the type of your entry here");
-        wordType.setTextColor(Color.WHITE);
-        wordType.setHintTextColor(Color.GRAY);
+        View dialogView = inflater.inflate(R.layout.word_dialog, null);
 
-        final EditText wordMeaning = new EditText(this);
-        wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-        wordMeaning.setTextColor(Color.WHITE);
-        wordMeaning.setHint("Enter any notes about the entry here");
-        wordMeaning.setHintTextColor(Color.GRAY);
-
-        layout.addView(wordName);
-        layout.addView(wordType);
-        layout.addView(wordMeaning);
-
-        builder.setView(layout);
+        final EditText wordName = dialogView.findViewById(R.id.txtWordName);
+        final EditText wordMeaning = dialogView.findViewById(R.id.txtWordMeaning);
+        final EditText wordType = dialogView.findViewById(R.id.txtWordType);
 
         builder.setPositiveButton("Add Entry", new DialogInterface.OnClickListener() {
             @Override
@@ -268,44 +250,27 @@ public class MainActivity extends AppCompatActivity {
                 dialogInterface.cancel();
             }
         });
+        builder.setView(dialogView);
         builder.show();
     }
     //Method for creating Dialog when editing word
     public void openEditWordDialog (final int position) {
         final Word currentWord = WordList.get(position);
 
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         builder.setTitle("Add Entry");
 
-        final EditText wordName = new EditText(this);
-        wordName.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-        wordName.setTextColor(Color.WHITE);
-        wordName.setHint("Enter the name of the entry here");
+        LayoutInflater inflater = getLayoutInflater();
+
+        View dialogView = inflater.inflate(R.layout.word_dialog, null);
+
+        final EditText wordName = dialogView.findViewById(R.id.txtWordName);
+        final EditText wordMeaning = dialogView.findViewById(R.id.txtWordMeaning);
+        final EditText wordType = dialogView.findViewById(R.id.txtWordType);
+
         wordName.setText(currentWord.getName());
-        wordName.setHintTextColor(Color.GRAY);
-
-        final EditText wordType = new EditText(this);
-        wordType.setInputType(InputType.TYPE_CLASS_TEXT);
-        wordType.setTextColor(Color.WHITE);
-        wordType.setHint("Enter the type of your entry here");
-        wordType.setText(currentWord.getType());
-        wordType.setHintTextColor(Color.GRAY);
-
-        final EditText wordMeaning = new EditText(this);
-        wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-        wordMeaning.setTextColor(Color.WHITE);
-        wordMeaning.setHint("Enter any notes about the entry here");
         wordMeaning.setText(currentWord.getMeaning());
-        wordMeaning.setHintTextColor(Color.GRAY);
-
-        layout.addView(wordName);
-        layout.addView(wordType);
-        layout.addView(wordMeaning);
-
-        builder.setView(layout);
+        wordType.setText(currentWord.getType());
 
         builder.setPositiveButton("Confirm Changes", new DialogInterface.OnClickListener() {
             @Override
@@ -317,9 +282,7 @@ public class MainActivity extends AppCompatActivity {
                     toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
                     toast.show();
                 } else {
-                    currentWord.mName = name;
-                    currentWord.mType = type;
-                    currentWord.mMeaning = meaning;
+                    currentWord.editWord(name, meaning, type);
                     adapter.notifyDataSetChanged();
                 }
             }
@@ -331,6 +294,7 @@ public class MainActivity extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
             }
         });
+        builder.setView(dialogView);
         builder.show();
     }
 
