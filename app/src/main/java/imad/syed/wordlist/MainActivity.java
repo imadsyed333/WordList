@@ -66,9 +66,8 @@ public class MainActivity extends AppCompatActivity {
         oldWordList = new ArrayList<>();
         fabUndo.hide();
 
-        TestPutWords();
+//        TestPutWords();
         RetrieveList();
-        RetrieveOldList();
 
         //Code for the RecyclerView adapter
         adapter = new WordListAdapter(WordList);
@@ -162,16 +161,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void TestPutWords() {
-        List<String> oldWords = new ArrayList<>();
-        oldWords.add("Kowalski is a legendary penguin that aces pizza");
-        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-        SharedPreferences.Editor editor = storage.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(oldWords);
-        editor.putString("word list", json);
-        editor.apply();
-    }
+//    public void TestPutWords() {
+//        List<String> oldWords = new ArrayList<>();
+//        oldWords.add("Kowalski is a legendary penguin that aces pizza");
+//        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
+//        SharedPreferences.Editor editor = storage.edit();
+//        Gson gson = new Gson();
+//        String json = gson.toJson(oldWords);
+//        editor.putString("word list", json);
+//        editor.apply();
+//    }
 
     public void RetrieveOldList() {
         try {
@@ -222,21 +221,24 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         builder.setTitle("Add Entry");
 
         final EditText wordName = new EditText(this);
         wordName.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         wordName.setHint("Enter the name of the entry here");
+        wordName.setTextColor(Color.WHITE);
         wordName.setHintTextColor(Color.GRAY);
 
         final EditText wordType = new EditText(this);
         wordType.setInputType(InputType.TYPE_CLASS_TEXT);
         wordType.setHint("Enter the type of your entry here");
+        wordType.setTextColor(Color.WHITE);
         wordType.setHintTextColor(Color.GRAY);
 
         final EditText wordMeaning = new EditText(this);
         wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        wordMeaning.setTextColor(Color.WHITE);
         wordMeaning.setHint("Enter any notes about the entry here");
         wordMeaning.setHintTextColor(Color.GRAY);
 
@@ -275,23 +277,26 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         builder.setTitle("Add Entry");
 
         final EditText wordName = new EditText(this);
         wordName.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        wordName.setTextColor(Color.WHITE);
         wordName.setHint("Enter the name of the entry here");
         wordName.setText(currentWord.getName());
         wordName.setHintTextColor(Color.GRAY);
 
         final EditText wordType = new EditText(this);
         wordType.setInputType(InputType.TYPE_CLASS_TEXT);
+        wordType.setTextColor(Color.WHITE);
         wordType.setHint("Enter the type of your entry here");
         wordType.setText(currentWord.getType());
         wordType.setHintTextColor(Color.GRAY);
 
         final EditText wordMeaning = new EditText(this);
         wordMeaning.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        wordMeaning.setTextColor(Color.WHITE);
         wordMeaning.setHint("Enter any notes about the entry here");
         wordMeaning.setText(currentWord.getMeaning());
         wordMeaning.setHintTextColor(Color.GRAY);
@@ -324,6 +329,26 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialogInterface, int i) {
                 dialogInterface.cancel();
                 adapter.notifyDataSetChanged();
+            }
+        });
+        builder.show();
+    }
+
+    public void retrieveOldListDialog(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+        builder.setTitle(R.string.oldListMessage);
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                RetrieveOldList();
+                Toast toast = Toast.makeText(getApplicationContext(), "Old Words Retrieved.", Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
             }
         });
         builder.show();
