@@ -28,4 +28,8 @@ public class Word {
         this.mMeaning = meaning;
         this.mType = type;
     }
+
+    public boolean contains(String input) {
+        return this.mName.toLowerCase().contains(input.toLowerCase()) || this.mMeaning.toLowerCase().contains(input.toLowerCase()) || this.mType.toLowerCase().contains(input.toLowerCase());
+    }
 }
