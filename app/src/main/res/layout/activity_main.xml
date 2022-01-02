@@ -3,47 +3,48 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:foregroundGravity="top">
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floatingActionButton"
+        android:id="@+id/btnOldList"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
         android:clickable="true"
+        android:contentDescription="@string/combines_old_wordlist_with_new_wordlist"
         android:focusable="true"
         android:onClick="retrieveOldListDialog"
-        android:layout_gravity="top|end"
         app:srcCompat="@android:drawable/ic_menu_recent_history"
-        android:contentDescription="@string/combines_old_wordlist_with_new_wordlist"
         tools:ignore="OnClick" />
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
-        android:layout_height="192dp"
-        android:layout_width="match_parent">
+        android:layout_width="match_parent"
+        android:layout_height="192dp">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/collapsingToolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:toolbarId="@+id/toolbar"
-            app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed"
-            app:contentScrim="?attr/colorAccent"
-            app:title="WordList"
             android:background="#00B1BF"
+            app:collapsedTitleTextAppearance="@style/ToolbarTitleTextCollapsed"
+            app:contentScrim="?attr/colorAccent"
             app:expandedTitleTextAppearance="@style/ToolbarTitleText"
-            app:collapsedTitleTextAppearance="@style/ToolbarTitleTextCollapsed">
+            app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed"
+            app:title="WordList"
+            app:toolbarId="@+id/toolbar">
 
             <SearchView
+                android:id="@+id/wordSearch"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/wordSearch"/>
+                android:background="#00B1BF" />
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
-                android:layout_height="?attr/actionBarSize"
-                android:layout_width="match_parent">
-            </androidx.appcompat.widget.Toolbar>
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"></androidx.appcompat.widget.Toolbar>
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
@@ -51,8 +52,8 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
-        android:background="#303030">
+        android:background="#303030"
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/wordListView"
@@ -68,28 +69,28 @@
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:backgroundTint="#00B1BF"
         android:contentDescription="@string/add_entry"
         android:onClick="openAddWordDialog"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
         android:src="@android:drawable/ic_input_add"
-        android:tint="#303030"
-        android:backgroundTint="#00B1BF"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp" />
+        android:tint="#303030" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnUndo"
-        android:contentDescription="@string/undo_delete"
-        android:onClick="UndoAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="80dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        app:srcCompat="@android:drawable/ic_menu_revert"
-        android:tint="#303030"
         android:backgroundTint="#00B1BF"
-        android:focusable="true" />
+        android:clickable="true"
+        android:contentDescription="@string/undo_delete"
+        android:focusable="true"
+        android:onClick="UndoAction"
+        android:tint="#303030"
+        app:srcCompat="@android:drawable/ic_menu_revert" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
