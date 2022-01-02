@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     Toast toast;
     ItemTouchHelper.SimpleCallback simpleCallback;
     ItemTouchHelper itemTouchHelper;
-    FloatingActionButton fabAdd, fabUndo;
+    FloatingActionButton fabAdd, fabUndo, fabRetrieve;
     RecyclerView.OnScrollListener onScrollListener;
     SearchView searchView;
 
@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.wordListView);
         fabAdd = findViewById(R.id.addButton);
         fabUndo = findViewById(R.id.btnUndo);
+        fabRetrieve = findViewById(R.id.btnOldList);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         searchView = findViewById(R.id.wordSearch);
@@ -108,8 +109,10 @@ public class MainActivity extends AppCompatActivity {
                 if (newState == RecyclerView.SCROLL_STATE_DRAGGING && fabAdd.isShown()) {
                     fabAdd.hide();
                     fabUndo.hide();
+                    fabRetrieve.hide();
                 } else {
                     fabAdd.show();
+                    fabRetrieve.show();
                     if (!deletedList.isEmpty()) {
                         fabUndo.show();
                     }
