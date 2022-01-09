@@ -6,9 +6,9 @@ android {
 
     defaultConfig {
         applicationId "imad.syed.wordlist"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 30
-        versionCode 13
+        versionCode 15
         versionName "2.7"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
