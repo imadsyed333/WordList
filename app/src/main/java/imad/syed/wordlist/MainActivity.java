@@ -3,8 +3,11 @@ package imad.syed.wordlist;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.widget.SearchView;
+
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,6 +24,7 @@ import android.widget.EditText;
 
 import android.widget.Toast;
 
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -35,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     // Variable Declarations
     RecyclerView recyclerView;
     WordListAdapter adapter;
-    RecyclerView.LayoutManager layoutManager;
+    LinearLayoutManager layoutManager;
     List<Word> WordList;
     List<Word> deletedList;
     List<Word> clearedList;
@@ -43,9 +47,10 @@ public class MainActivity extends AppCompatActivity {
     Toast toast;
     ItemTouchHelper.SimpleCallback simpleCallback;
     ItemTouchHelper itemTouchHelper;
-    FloatingActionButton fabAdd, fabUndo, fabRetrieve;
-    RecyclerView.OnScrollListener onScrollListener;
+    FloatingActionButton fabAdd, fabUndo, fabRetrieve, fabTop;
+    AppBarLayout appBarLayout;
     SearchView searchView;
+    NestedScrollView scrollView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
         fabAdd = findViewById(R.id.addButton);
         fabUndo = findViewById(R.id.btnUndo);
         fabRetrieve = findViewById(R.id.btnOldList);
+        fabTop = findViewById(R.id.btnTop);
+        scrollView = findViewById(R.id.scrollView);
+        appBarLayout = findViewById(R.id.appbarLayout);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         searchView = findViewById(R.id.wordSearch);
@@ -63,9 +71,10 @@ public class MainActivity extends AppCompatActivity {
         clearedList = new ArrayList<>();
         WordList = new ArrayList<>();
         oldWordList = new ArrayList<>();
+        appBarLayout.setExpanded(true, true);
         fabUndo.hide();
+        fabTop.hide();
 
-//        TestPutWords();
         RetrieveList();
 
         //Code for the RecyclerView adapter
@@ -101,25 +110,41 @@ public class MainActivity extends AppCompatActivity {
         itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
-        //Code for hiding fab when scrolling
-        onScrollListener = new RecyclerView.OnScrollListener() {
+        //Code for hiding floating buttons when scrolling
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-                if (newState == RecyclerView.SCROLL_STATE_DRAGGING && fabAdd.isShown()) {
-                    fabAdd.hide();
-                    fabUndo.hide();
-                    fabRetrieve.hide();
-                } else {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                     fabAdd.show();
                     fabRetrieve.show();
                     if (!deletedList.isEmpty()) {
                         fabUndo.show();
                     }
+                } else {
+                    fabAdd.hide();
+                    fabRetrieve.hide();
+                    fabUndo.hide();
                 }
             }
-        };
-        recyclerView.addOnScrollListener(onScrollListener);
+        });
+
+        scrollView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                int dy = scrollY - oldScrollY;
+                if (dy > 0) {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            fabTop.setVisibility(View.GONE);
+                        }
+                    }, 2000);
+                } else if (dy < 0) {
+                    fabTop.show();
+                }
+            }
+        });
 
         //Code for search queries
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -162,17 +187,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-//    public void TestPutWords() {
-//        List<String> oldWords = new ArrayList<>();
-//        oldWords.add("Kowalski is a legendary penguin that aces pizza");
-//        SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-//        SharedPreferences.Editor editor = storage.edit();
-//        Gson gson = new Gson();
-//        String json = gson.toJson(oldWords);
-//        editor.putString("word list", json);
-//        editor.apply();
-//    }
-
     public void RetrieveOldList() {
         try {
             SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
@@ -180,8 +194,12 @@ public class MainActivity extends AppCompatActivity {
             String json = storage.getString("word list", String.valueOf(new ArrayList<String>()));
             Type type = new TypeToken<ArrayList<String>>() {}.getType();
             oldWordList = gson.fromJson(json, type);
+            assert oldWordList != null;
             if (!oldWordList.isEmpty()) {
                 convertWords();
+            } else {
+                toast = Toast.makeText(getApplicationContext(), "There are no words to retrieve", Toast.LENGTH_SHORT);
+                toast.show();
             }
         } catch (NullPointerException ne) {
             Log.d("oldListError", "The old WordList appears to be empty");
@@ -219,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
     }
     //Method for creating a Dialog when adding words
     public void openAddWordDialog (View view) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, 4);
         builder.setTitle("Add Entry");
 
         LayoutInflater inflater = getLayoutInflater();
@@ -257,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
     public void openEditWordDialog (final int position) {
         final Word currentWord = WordList.get(position);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, 4);
         builder.setTitle("Add Entry");
 
         LayoutInflater inflater = getLayoutInflater();
@@ -299,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void retrieveOldListDialog(View view) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, 4);
         builder.setTitle(R.string.oldListMessage);
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
@@ -317,6 +335,12 @@ public class MainActivity extends AppCompatActivity {
         });
         builder.show();
     }
+
+    public void sendToTop (View view) {
+        scrollView.smoothScrollTo(0, 0);
+        appBarLayout.setExpanded(true);
+    }
+
     //Method that compares entries by name
     public void WordListSort() {
         Collections.sort(WordList, new Comparator<Word>() {
