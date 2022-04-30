@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.widget.SearchView;
 
 import androidx.core.widget.NestedScrollView;
@@ -23,6 +24,7 @@ import android.view.View;
 
 import android.widget.EditText;
 
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -110,7 +112,6 @@ public class MainActivity extends AppCompatActivity {
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 return false;
             }
-
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int i = viewHolder.getAdapterPosition();
@@ -168,22 +169,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        scrollView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
-//            @Override
-//            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-//                int dy = scrollY - oldScrollY;
-//                if (dy > 0) {
-//                    new Handler().postDelayed(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            fabTop.setVisibility(View.GONE);
-//                        }
-//                    }, 5000);
-//                } else if (dy < 0) {
-//                    fabTop.show();
-//                }
-//            }
-//        });
 
         //Code for search queries
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -254,7 +239,8 @@ public class MainActivity extends AppCompatActivity {
     }
     // Method for adding a word
     public void AddWord (String name, String meaning, String type) {
-        WordList.add(new Word(name, meaning, type));
+        Word newWord = new Word(name, meaning, type);
+        WordList.add(newWord);
         toast = Toast.makeText(getApplicationContext(), "Entry added. List Saved.", Toast.LENGTH_SHORT);
         Save();
         WordListSort();
@@ -298,11 +284,9 @@ public class MainActivity extends AppCompatActivity {
                     toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
                     toast.show();
                 } else {
-                    if (meaning.isEmpty()) {
-                        meaning = getWordDefinition(name);
-                    }
                     AddWord(name, meaning, type);
                 }
+                adapter.notifyDataSetChanged();
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -343,9 +327,6 @@ public class MainActivity extends AppCompatActivity {
                     toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
                     toast.show();
                 } else {
-                    if (meaning.isEmpty()) {
-                        meaning = getWordDefinition(name);
-                    }
                     currentWord.editWord(name, meaning, type);
                     adapter.notifyDataSetChanged();
                 }
@@ -397,35 +378,5 @@ public class MainActivity extends AppCompatActivity {
                 return word1.getName().compareToIgnoreCase(word2.getName());
             }
         });
-    }
-
-//     Method that returns the definition of the given word
-    public String getWordDefinition(String word) {
-        String[] meaning = {"No definition"};
-        String url = "https://api.dictionaryapi.dev/api/v2/entries/en/" + word;
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray response) {
-                try {
-                    JSONObject wordObject = response.getJSONObject(0);
-                    JSONArray meaningsArray = wordObject.getJSONArray("meanings");
-                    JSONObject meaningsObject = meaningsArray.getJSONObject(0);
-                    JSONArray definitionsArray = meaningsObject.getJSONArray("definitions");
-                    JSONObject definitionsObject = definitionsArray.getJSONObject(0);
-                    Log.d("hello definition ", definitionsObject.get("definition").toString());
-                    meaning[0] = definitionsObject.get("definition").toString();
-                    Log.d("meaning[0]", meaning[0]);
-                } catch (JSONException e) {
-                    Log.d("error ", "badness");
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("error ", "request failed");
-            }
-        });
-        requestQueue.add(jsonArrayRequest);
-        return meaning[0];
     }
 }
