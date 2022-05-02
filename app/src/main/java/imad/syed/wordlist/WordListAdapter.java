@@ -44,38 +44,10 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordLi
         }
     }
 
-    View.OnClickListener onClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            TextView nameItem = view.findViewById(R.id.nameView);
-            TextView meaningItem = view.findViewById(R.id.meaningView);
-            RequestQueue requestQueue = Volley.newRequestQueue(view.getContext());
-            String url = "https://api.dictionaryapi.dev/api/v2/entries/en/" + nameItem.getText();
-            JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
-                @Override
-                public void onResponse(JSONArray response) {
-                    try {
-                        String meaning = response.getJSONObject(0).getJSONArray("meanings").getJSONObject(0).getJSONArray("definitions").getJSONObject(0).get("definition").toString();
-                        meaningItem.setText(meaning);
-                    } catch (JSONException e) {
-                        Log.d("error ", "badness");
-                    }
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.d("error ", "request failed");
-                }
-            });
-            requestQueue.add(jsonArrayRequest);
-        }
-    };
-
     @NonNull
     @Override
     public WordListViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.row, parent, false);
-        view.setOnClickListener(onClickListener);
         return new WordListViewHolder(view);
     }
 
