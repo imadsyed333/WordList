@@ -3,6 +3,7 @@ package imad.syed.wordlist;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.view.LayoutInflater;
@@ -368,6 +369,33 @@ public class MainActivity extends AppCompatActivity {
 //        recyclerView.scrollTo(0, 0);
 //        appBarLayout.setExpanded(true);
         fabTop.hide();
+    }
+
+    public void fetchDefinition(View view) {
+        View dialogView = (View) view.getParent();
+        EditText meaningField = dialogView.findViewById(R.id.txtWordMeaning);
+        EditText nameField = dialogView.findViewById(R.id.txtWordName);
+        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+        String url = "https://api.dictionaryapi.dev/api/v2/entries/en/" + nameField.getText().toString();
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                try {
+                    String meaning = response.getJSONObject(0).getJSONArray("meanings").getJSONObject(0).getJSONArray("definitions").getJSONObject(0).get("definition").toString();
+                    meaningField.setText(meaning);
+                } catch (JSONException e) {
+                    Log.d("error ", "badness");
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("error ", "request failed");
+                Toast toast = Toast.makeText(getApplicationContext(), "No official definition exists", Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        });
+        requestQueue.add(jsonArrayRequest);
     }
 
     //Method that compares entries by name
