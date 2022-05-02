@@ -20,4 +20,5 @@
     <string name="enter_type_of_entry">Enter type of entry</string>
     <string name="enter_meaning_of_entry">Enter meaning of entry</string>
     <string name="up_button_message">Sends to top of page</string>
+    <string name="get_official_definition">Get official definition</string>
 </resources>

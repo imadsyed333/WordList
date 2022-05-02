@@ -20,25 +20,34 @@
         android:id="@+id/txtWordType"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:autofillHints="@string/enter_type_of_entry"
         android:ems="10"
-        android:inputType="textPersonName"
         android:hint="@string/enter_type_of_entry"
+        android:inputType="textPersonName"
+        android:minHeight="48dp"
         android:textColor="@android:color/white"
         android:textColorHint="@android:color/darker_gray"
-        android:textCursorDrawable="@null"
-        android:autofillHints="@string/enter_type_of_entry" />
+        android:textCursorDrawable="@null" />
 
     <EditText
         android:id="@+id/txtWordMeaning"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:autofillHints="@string/enter_meaning_of_entry"
         android:ems="10"
         android:gravity="start|top"
         android:hint="@string/enter_meaning_of_entry"
+        android:inputType="textMultiLine"
+        android:minHeight="48dp"
+        android:scrollHorizontally="false"
         android:textColor="@android:color/white"
         android:textColorHint="@android:color/darker_gray"
-        android:textCursorDrawable="@null"
-        android:autofillHints="@string/enter_meaning_of_entry"
-        android:inputType="textMultiLine"
-        android:scrollHorizontally="false"/>
+        android:textCursorDrawable="@null" />
+
+    <Button
+        android:id="@+id/btnFetch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="fetchDefinition"
+        android:text="@string/get_official_definition" />
 </LinearLayout>
