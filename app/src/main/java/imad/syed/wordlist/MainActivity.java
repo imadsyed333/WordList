@@ -3,11 +3,8 @@ package imad.syed.wordlist;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.os.Handler;
-import android.os.StrictMode;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.widget.SearchView;
 
 import androidx.core.widget.NestedScrollView;
@@ -33,26 +30,16 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -129,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } else if (direction == ItemTouchHelper.RIGHT) {
                     openEditWordDialog(i);
+                    adapter.notifyItemChanged(i);
                 }
             }
         };
