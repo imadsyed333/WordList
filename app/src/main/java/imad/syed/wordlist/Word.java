@@ -1,5 +1,7 @@
 package imad.syed.wordlist;
 
+import androidx.annotation.NonNull;
+
 public class Word {
     String mName;
     String mMeaning;
@@ -27,6 +29,11 @@ public class Word {
         this.mName = name;
         this.mMeaning = meaning;
         this.mType = type;
+    }
+
+    @NonNull
+    public String toString() {
+        return "[" + getName() + ", type: " + getType() + ", meaning: " + getMeaning() + "]";
     }
 
     public boolean contains(String input) {
