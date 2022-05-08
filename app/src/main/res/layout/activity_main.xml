@@ -14,13 +14,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
+        android:layout_margin="16dp"
         android:clickable="true"
         android:contentDescription="@string/combines_old_wordlist_with_new_wordlist"
         android:focusable="true"
         android:onClick="retrieveOldListDialog"
         app:srcCompat="@android:drawable/ic_menu_recent_history"
-        tools:ignore="OnClick"
-        android:layout_margin="16dp"/>
+        tools:ignore="OnClick" />
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbarLayout"
@@ -39,7 +39,14 @@
             app:title="WordList"
             app:toolbarId="@+id/toolbar">
 
-            <SearchView
+            <Button
+                android:id="@+id/btnSend"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="sendWords"
+                android:text="@string/send" />
+
+            <androidx.appcompat.widget.SearchView
                 android:id="@+id/wordSearch"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
