@@ -3,10 +3,10 @@ package imad.syed.wordlist;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.Handler;
+import android.content.Intent;
 import android.view.LayoutInflater;
-import android.widget.SearchView;
 
+import androidx.appcompat.widget.SearchView;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -20,8 +20,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,6 +41,7 @@ import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -59,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     ItemTouchHelper itemTouchHelper;
     FloatingActionButton fabAdd, fabUndo, fabRetrieve, fabTop;
     AppBarLayout appBarLayout;
-    SearchView searchView;
+    androidx.appcompat.widget.SearchView searchView;
     NestedScrollView scrollView;
     RequestQueue requestQueue;
 
@@ -90,6 +94,9 @@ public class MainActivity extends AppCompatActivity {
 
         RetrieveList();
 
+        if (WordList.isEmpty()) {
+            noWords();
+        }
         //Code for the RecyclerView adapter
         adapter = new WordListAdapter(WordList);
         recyclerView.setAdapter(adapter);
@@ -102,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                int i = viewHolder.getAdapterPosition();
+                int i = viewHolder.getBindingAdapterPosition();
                 if (direction == ItemTouchHelper.LEFT) {
                     deletedList.add(WordList.get(i));
                     WordList.remove(i);
@@ -123,48 +130,22 @@ public class MainActivity extends AppCompatActivity {
         itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
-        //Code for hiding floating buttons when scrolling
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        scrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
             @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+            public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                if (scrollY == 0) {
                     fabAdd.show();
-                    fabRetrieve.show();
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            fabTop.hide();
-                        }
-                    }, 2000);
-                    if (!deletedList.isEmpty()) {
-                        fabUndo.show();
-                    }
                 } else {
                     fabAdd.hide();
-                    fabRetrieve.hide();
-                    fabUndo.hide();
-                }
-            }
-
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                if (dy > 0) {
-                    fabTop.hide();
-                } else if (dy < 0) {
-                    fabTop.show();
                 }
             }
         });
-
 
         //Code for search queries
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 adapter.filter(query);
-                adapter.notifyItemRangeChanged(0, WordList.size());
                 adapter.notifyDataSetChanged();
                 return true;
             }
@@ -194,7 +175,6 @@ public class MainActivity extends AppCompatActivity {
             String json = storage.getString("wordlist", String.valueOf(new ArrayList<Word>()));
             Type type = new TypeToken<ArrayList<Word>>() {}.getType();
             WordList = gson.fromJson(json, type);
-            WordListSort();
             adapter.notifyDataSetChanged();
         } catch (NullPointerException ne) {
             Log.d("wordListError", "The WordList appears to be empty");
@@ -212,8 +192,7 @@ public class MainActivity extends AppCompatActivity {
             if (!oldWordList.isEmpty()) {
                 convertWords();
             } else {
-                toast = Toast.makeText(getApplicationContext(), "There are no words to retrieve", Toast.LENGTH_SHORT);
-                toast.show();
+                alert("There are no words to retrieve");
             }
         } catch (NullPointerException ne) {
             Log.d("oldListError", "The old WordList appears to be empty");
@@ -226,15 +205,24 @@ public class MainActivity extends AppCompatActivity {
             AddWord(words[0], entry, "");
         }
     }
+
+    public void sendWords(View view) {
+        Gson gson = new Gson();
+        String json = gson.toJson(WordList);
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_STREAM, json);
+        shareIntent.setType("text/json");
+        startActivity(Intent.createChooser(shareIntent, null));
+    }
     // Method for adding a word
     public void AddWord (String name, String meaning, String type) {
         Word newWord = new Word(name, meaning, type);
         WordList.add(newWord);
-        toast = Toast.makeText(getApplicationContext(), "Entry added. List Saved.", Toast.LENGTH_SHORT);
-        Save();
+        alert("Entry added");
         WordListSort();
+        Save();
         adapter.notifyDataSetChanged();
-        toast.show();
     }
     //Method for undoing DeleteWord
     public void UndoAction (View view) {
@@ -244,8 +232,7 @@ public class MainActivity extends AppCompatActivity {
         WordListSort();
         adapter.notifyDataSetChanged();
         Save();
-        toast = Toast.makeText(getApplicationContext(), "Entry re-added. List Saved.", Toast.LENGTH_SHORT);
-        toast.show();
+        alert("Entry re-added");
         if (deletedList.size() == 0) {
             fabUndo.hide();
         }
@@ -270,8 +257,7 @@ public class MainActivity extends AppCompatActivity {
                 String meaning = wordMeaning.getText().toString();
                 String type = wordType.getText().toString().toLowerCase();
                 if (name.isEmpty()) {
-                    toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
-                    toast.show();
+                    alert("Name must not be empty");
                 } else {
                     AddWord(name, meaning, type);
                 }
@@ -313,8 +299,7 @@ public class MainActivity extends AppCompatActivity {
                 String meaning = wordMeaning.getText().toString();
                 String type = wordType.getText().toString().toLowerCase();
                 if (name.isEmpty()) {
-                    toast = Toast.makeText(getApplicationContext(), "Entry must not be empty", Toast.LENGTH_LONG);
-                    toast.show();
+                    alert("Name must not be empty");
                 } else {
                     currentWord.editWord(name, meaning, type);
                     adapter.notifyDataSetChanged();
@@ -339,8 +324,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 RetrieveOldList();
-                Toast toast = Toast.makeText(getApplicationContext(), "Old Words Retrieved.", Toast.LENGTH_SHORT);
-                toast.show();
+                alert("Old Words Retrieved");
             }
         });
         builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -368,22 +352,27 @@ public class MainActivity extends AppCompatActivity {
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
-                try {
-                    String meaning = response.getJSONObject(0).getJSONArray("meanings").getJSONObject(0).getJSONArray("definitions").getJSONObject(0).get("definition").toString();
-                    meaningField.setText(meaning);
-                } catch (JSONException e) {
-                    Log.d("error ", "badness");
-                }
+                displayDefinitions(meaningField, response);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.d("error ", "request failed");
-                Toast toast = Toast.makeText(getApplicationContext(), "No official definition exists", Toast.LENGTH_SHORT);
-                toast.show();
+                alert("No official definition exists");
             }
         });
         requestQueue.add(jsonArrayRequest);
+    }
+
+    public void noWords() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, 4);
+        builder.setTitle("No words?");
+        builder.setPositiveButton("Add some", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+            }
+        });
+        builder.show();
     }
 
     //Method that compares entries by name
@@ -394,5 +383,44 @@ public class MainActivity extends AppCompatActivity {
                 return word1.getName().compareToIgnoreCase(word2.getName());
             }
         });
+    }
+
+    public void displayDefinitions(EditText meaningField, JSONArray jsonArray) {
+        List<String> meanings = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            try {
+                JSONObject wordObject = jsonArray.getJSONObject(i);
+                JSONArray meaningArray = wordObject.getJSONArray("meanings");
+                for (int j = 0; j < meaningArray.length(); j++) {
+                    JSONObject meaningObject = meaningArray.getJSONObject(j);
+                    String meaning = meaningObject.getJSONArray("definitions").getJSONObject(0).get("definition").toString();
+                    meanings.add(meaning);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        ListView listView = new ListView(this);
+        ArrayAdapter adapter = new ArrayAdapter<String>(this, R.layout.simple_row, meanings);
+        Log.d("meanings:", String.valueOf(meanings));
+        listView.setAdapter(adapter);
+        builder.setView(listView);
+        builder.setTitle("Choose a definition");
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                meaningField.setText(meanings.get(i));
+                dialog.cancel();
+            }
+        });
+    }
+
+    public void alert(String message) {
+        toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT);
+        toast.show();
     }
 }
