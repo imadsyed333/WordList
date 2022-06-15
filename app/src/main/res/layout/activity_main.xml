@@ -9,19 +9,6 @@
     app:layout_scrollFlags="scroll"
     android:id="@+id/coordinatorLayout">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btnOldList"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_margin="16dp"
-        android:clickable="true"
-        android:contentDescription="@string/combines_old_wordlist_with_new_wordlist"
-        android:focusable="true"
-        android:onClick="retrieveOldListDialog"
-        app:srcCompat="@android:drawable/ic_menu_recent_history"
-        tools:ignore="OnClick" />
-
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbarLayout"
         android:layout_width="match_parent"
