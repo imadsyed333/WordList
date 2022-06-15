@@ -3,7 +3,6 @@ package imad.syed.wordlist;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
 import android.view.LayoutInflater;
 
 import androidx.appcompat.widget.SearchView;
@@ -25,7 +24,6 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -43,6 +41,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     Toast toast;
     ItemTouchHelper.SimpleCallback simpleCallback;
     ItemTouchHelper itemTouchHelper;
-    FloatingActionButton fabAdd, fabUndo, fabRetrieve, fabTop;
+    FloatingActionButton fabAdd, fabUndo, fabTop;
     AppBarLayout appBarLayout;
     androidx.appcompat.widget.SearchView searchView;
     NestedScrollView scrollView;
@@ -77,7 +78,6 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.wordListView);
         fabAdd = findViewById(R.id.addButton);
         fabUndo = findViewById(R.id.btnUndo);
-        fabRetrieve = findViewById(R.id.btnOldList);
         fabTop = findViewById(R.id.btnTop);
         scrollView = findViewById(R.id.scrollView);
         appBarLayout = findViewById(R.id.appbarLayout);
@@ -134,6 +134,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
                 if (scrollY == 0) {
+                    fabTop.hide();
+                } else {
+                    fabTop.show();
+                }
+
+                int dy = oldScrollY - scrollY;
+                if (dy == 0) {
                     fabAdd.show();
                 } else {
                     fabAdd.hide();
@@ -181,39 +188,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void RetrieveOldList() {
-        try {
-            SharedPreferences storage = getSharedPreferences("shared preferences", MODE_PRIVATE);
-            Gson gson = new Gson();
-            String json = storage.getString("word list", String.valueOf(new ArrayList<String>()));
-            Type type = new TypeToken<ArrayList<String>>() {}.getType();
-            oldWordList = gson.fromJson(json, type);
-            assert oldWordList != null;
-            if (!oldWordList.isEmpty()) {
-                convertWords();
-            } else {
-                alert("There are no words to retrieve");
-            }
-        } catch (NullPointerException ne) {
-            Log.d("oldListError", "The old WordList appears to be empty");
-        }
-    }
-
-    public void convertWords() {
-        for (String entry : oldWordList) {
-            String[] words = entry.split(" ");
-            AddWord(words[0], entry, "");
-        }
-    }
-
     public void sendWords(View view) {
         Gson gson = new Gson();
+        File words = new File("words.txt");
         String json = gson.toJson(WordList);
-        Intent shareIntent = new Intent();
-        shareIntent.setAction(Intent.ACTION_SEND);
-        shareIntent.putExtra(Intent.EXTRA_STREAM, json);
-        shareIntent.setType("text/json");
-        startActivity(Intent.createChooser(shareIntent, null));
+        try {
+            FileWriter fileWriter = new FileWriter("/storage/emulated/0/Download/words.txt");
+            fileWriter.write(json);
+            fileWriter.close();
+            alert("Exported words to words.txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+            alert("Export failed");
+        }
     }
     // Method for adding a word
     public void AddWord (String name, String meaning, String type) {
@@ -317,29 +304,9 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
-    public void retrieveOldListDialog(View view) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, 4);
-        builder.setTitle(R.string.oldListMessage);
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                RetrieveOldList();
-                alert("Old Words Retrieved");
-            }
-        });
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        builder.show();
-    }
-
     public void sendToTop (View view) {
         scrollView.scrollTo(0, 0);
-//        recyclerView.scrollTo(0, 0);
-//        appBarLayout.setExpanded(true);
+        appBarLayout.setExpanded(true);
         fabTop.hide();
     }
 
