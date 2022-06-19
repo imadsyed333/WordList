@@ -22,4 +22,5 @@
     <string name="up_button_message">Sends to top of page</string>
     <string name="get_official_definition">Get official definition</string>
     <string name="send">Send</string>
+    <string name="import_button">Import</string>
 </resources>
