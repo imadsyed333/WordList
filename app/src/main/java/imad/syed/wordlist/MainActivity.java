@@ -1,13 +1,11 @@
 package imad.syed.wordlist;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.view.LayoutInflater;
 
 import androidx.appcompat.widget.SearchView;
@@ -63,7 +61,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity {
     // Variable Declarations
@@ -454,11 +451,11 @@ public class MainActivity extends AppCompatActivity {
         toast.show();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public void removeDuplicates() {
-        List<Word> newList = WordList.stream().distinct().collect(Collectors.toList());
+
+        Set<Word> set = new LinkedHashSet<>(WordList);
         WordList.clear();
-        WordList.addAll(newList);
+        WordList.addAll(set);
 
     }
 }
