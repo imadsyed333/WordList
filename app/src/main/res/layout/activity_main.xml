@@ -30,8 +30,16 @@
                 android:id="@+id/btnSend"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="sendWords"
+                android:onClick="exportWords"
                 android:text="@string/send" />
+
+            <Button
+                android:id="@+id/btnImport"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:onClick="importWords"
+                android:text="@string/import_button" />
 
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/wordSearch"
