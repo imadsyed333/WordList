@@ -1,11 +1,13 @@
 package imad.syed.wordlist;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.view.LayoutInflater;
 
 import androidx.appcompat.widget.SearchView;
@@ -57,8 +59,11 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity {
     // Variable Declarations
@@ -108,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
         if (WordList.isEmpty()) {
             noWords();
         }
+
+        removeDuplicates();
+
         //Code for the RecyclerView adapter
         adapter = new WordListAdapter(WordList);
         recyclerView.setAdapter(adapter);
@@ -235,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
                     Type type = new TypeToken<ArrayList<Word>>() {}.getType();
                     WordList.addAll(gson.fromJson(json, type));
                     adapter.notifyDataSetChanged();
+                    Save();
                     alert("Loaded words from words.json");
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -443,5 +452,13 @@ public class MainActivity extends AppCompatActivity {
     public void alert(String message) {
         toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT);
         toast.show();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void removeDuplicates() {
+        List<Word> newList = WordList.stream().distinct().collect(Collectors.toList());
+        WordList.clear();
+        WordList.addAll(newList);
+
     }
 }
