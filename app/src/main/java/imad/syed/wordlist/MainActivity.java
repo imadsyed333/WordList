@@ -3,6 +3,9 @@ package imad.syed.wordlist;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 
 import androidx.appcompat.widget.SearchView;
@@ -35,20 +38,27 @@ import com.android.volley.toolbox.Volley;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     // Variable Declarations
@@ -60,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     List<Word> clearedList;
     List<String> oldWordList;
     Toast toast;
+    int fileCode = 1;
     ItemTouchHelper.SimpleCallback simpleCallback;
     ItemTouchHelper itemTouchHelper;
     FloatingActionButton fabAdd, fabUndo, fabTop;
@@ -188,7 +199,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void sendWords(View view) {
+    // Method for exporting words to txt file in downloads
+    public void exportWords(View view) {
         Gson gson = new Gson();
         File words = new File("words.txt");
         String json = gson.toJson(WordList);
@@ -201,6 +213,48 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             alert("Export failed");
         }
+    }
+
+    public void importWords(View view) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+
+        startActivityForResult(intent, fileCode);
+    }
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == fileCode && resultCode == Activity.RESULT_OK) {
+            if (data != null) {
+                Uri uri = data.getData();
+                try {
+                    String json = readTextFromUri(uri);
+                    Log.d("Imported list", json);
+                    Gson gson = new Gson();
+                    Type type = new TypeToken<ArrayList<Word>>() {}.getType();
+                    WordList.addAll(gson.fromJson(json, type));
+                    adapter.notifyDataSetChanged();
+                    alert("Loaded words from words.json");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    alert("failed to parse json data");
+                }
+            }
+        }
+    }
+    private String readTextFromUri(Uri uri) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        try (InputStream inputStream =
+                     getContentResolver().openInputStream(uri);
+             BufferedReader reader = new BufferedReader(
+                     new InputStreamReader(Objects.requireNonNull(inputStream)))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+        }
+        return stringBuilder.toString();
     }
     // Method for adding a word
     public void AddWord (String name, String meaning, String type) {
