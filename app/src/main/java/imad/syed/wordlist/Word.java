@@ -39,4 +39,18 @@ public class Word {
     public boolean contains(String input) {
         return this.mName.toLowerCase().contains(input.toLowerCase()) || this.mMeaning.toLowerCase().contains(input.toLowerCase()) || this.mType.toLowerCase().contains(input.toLowerCase());
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Word) {
+            Word temp = (Word) obj;
+            return this.mName.equals(temp.mName) && this.mMeaning.equals(temp.mMeaning) && this.mType.equals(temp.mType);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return (this.mName.hashCode() + this.mMeaning.hashCode() + this.mType.hashCode());
+    }
 }
