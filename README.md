@@ -1,6 +1,8 @@
 # WordList
 An app for your favorite words. Check it out on the Google Play Store [here](https://play.google.com/store/apps/details?id=imad.syed.wordlist)
 
+UPDATE: This version of WordList is now discontinued. The latest code for WordList can be found [here](https://github.com/imadsyed333/WordListReactNative)
+
 ## Documentation
 
 ### Basic User Actions
